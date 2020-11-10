@@ -1,0 +1,105 @@
+Laurent LEQUIEVRE
+Research Engineer, CNRS (France)
+Institut Pascal UMR6602
+laurent.lequievre@uca.fr
+
+===========================================
+= How to install ANACONDA on Ubuntu 16.04 =
+===========================================
+
+Conda allows you to create separate environments containing files, packages, and their dependencies that will not interact with other environments.
+
+https://www.digitalocean.com/community/tutorials/how-to-install-the-anaconda-python-distribution-on-ubuntu-16-04
+
+https://docs.anaconda.com/anaconda/install/linux/
+
+LATEST DOC : https://docs.conda.io/projects/conda/en/latest/
+
+
+1- Download the latest bash install script for linux x86 64 bits :
+
+https://repo.anaconda.com/archive/
+
+(choose the file) -> Anaconda3-2020.07-Linux-x86_64.sh
+
+2- Test Hash code of the script file (to be sure of the downloaded file) :
+
+sha256sum Anaconda3-2020.07-Linux-x86_64.sh
+
+(look at the output) -> 38ce717758b95b3bd0b1797cc6ccfb76f29a90c25bdfa50ee45f11e583edfdbf  Anaconda3-2020.07-Linux-x86_64.sh
+
+(Compare this hash code with ) -> https://docs.anaconda.com/anaconda/install/hashes/all/
+
+3- Run the script to install anaconda on ubuntu linux system :
+
+bash Anaconda3-2020.07-Linux-x86_64.sh
+
+Note : (I did not do this on my computer)
+------
+
+If you'd prefer that conda's base environment not be activated on startup, 
+set the auto_activate_base parameter to false: 
+
+conda config --set auto_activate_base false
+
+4- Close the terminal window and restart it.
+-> (base) appears in front of the prompt.
+
+This is the default environment name. We can now create our own environments.
+
+
+===========================================
+= Some usefull ANACONDA commands          =
+===========================================
+
+Some useful commands to get started with anaconda :
+
+-> print version of anaconda
+conda --version
+
+-> update anaconda
+conda update conda
+
+-> list conda envs :
+conda info --envs
+or
+conda-env list
+
+* the (base) env is saved into /user_home/anaconda3
+* all the new envs are saved into /user_home/anaconda3/envs
+
+-> see which python version used
+which python
+
+-> create a new env
+conda create --name mySuperName
+
+(set the specific python version)
+conda create --name mySuperName python=3.5
+
+-> activate the new env (the prompt change to the name of the new env)
+conda activaye mySuperName
+
+-> install a python package (after activating the new env)
+conda install mySuperPackage
+
+-> search a package into the database (with internet connection)
+conda search mySuperPackage
+
+-> list linked packages in a conda environment.
+conda list
+
+-> return to default (base) env
+conda activate
+
+-> delete a conda env
+conda remove --name mySuperName --all
+
+===========================================
+= How to install pybullet                 =
+===========================================
+
+pip3 install pybullet --upgrade --user
+
+
+-> Unfortunately the version of pybullet on anaconda is not updated. So I used a classic installation with pip3 install.
