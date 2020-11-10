@@ -103,3 +103,7 @@ pip3 install pybullet --upgrade --user
 
 
 -> Unfortunately the version of pybullet on anaconda is not updated. So I used a classic installation with pip3 install.
+
+
+pybuller API documentation:
+https://pybullet.org/Bullet/BulletFull/

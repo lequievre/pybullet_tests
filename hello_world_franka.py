@@ -66,7 +66,15 @@ for i in range(num_joints):
       print("joint {0}, type:{1} -> {2}".format(joint_name,joint_type,joint_type_name))
       joint_name_to_ids[joint_name] = i
 
+      # You can reset the state of the joint. It is best only to do this at the start, while not running the
+      # simulation: resetJointState overrides all physics simulation.
       p.resetJointState(robotId, i, initial_positions[joint_name], physicsClientId=physicsClient)
+      
+      # We can control a robot by setting a desired control mode for one or more joint motors. During
+      # the stepSimulation the physics engine will simulate the motors to reach the given target value
+      # that can be reached within the maximum motor forces and other constraints. Each revolute joint
+      # and prismatic joint is motorized by default. There are 3 different motor control modes: position
+      # control, velocity control and torque control.
       p.setJointMotorControl2(robotId, i, p.POSITION_CONTROL,
                                         targetPosition=initial_positions[joint_name],
                                         positionGain=0.2, velocityGain=1.0,
