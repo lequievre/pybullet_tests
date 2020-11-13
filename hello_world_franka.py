@@ -6,7 +6,7 @@ Research Engineer, CNRS (France)
 Institut Pascal UMR6602
 laurent.lequievre@uca.fr
 
-Grasp a object in a trailbox (robot and trailbox are on a table)
+Grasp an object in a trailbox (robot and trailbox are on a table)
 keyboard keys used:
     - 'i' to set the panda to an initial position
     - 'p' to set the panda to a pre grasp position
