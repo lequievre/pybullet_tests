@@ -139,4 +139,17 @@ with Listener(
         on_release=on_release) as listener:
     listener.join()
     
-    
+==============================================
+= OpenAI gym - How to                        =
+==============================================
+
+-> How to install a new gym package :
+
+cd root directory of my new gym custom package.
+cd /home/laurent/Tests_PyBullet/pybullet/gym-panda-ip
+pip install -e .
+(to install it on your local python system)
+
+the package is now installed, the pip install command create a file :
+/home/laurent/anaconda3/lib/python3.8/site-packages/gym-panda-ip.egg-link 
+which contain the source directory of my gym package : /home/laurent/Tests_PyBullet/pybullet/gym-panda-ip
