@@ -12,12 +12,8 @@ laurent.lequievre@uca.fr
 import pybullet as p
 import pybullet_data
 
-import time
 import math
 
-# lib pynput -> listen keboard events
-# pip3 install pynput
-from pynput.keyboard import Key, Listener
 
 switcher_type_name = {
         p.JOINT_REVOLUTE: "JOINT_REVOLUTE",
@@ -41,39 +37,12 @@ def printAllInfo(robotid, clientId):
     print("i={0}, name={1}, type={2}, lower={3}, upper={4}".format(i,joint_name,joint_type_name,joint_lower_limit,joint_upper_limit))
   print("=================================")
   
-# boolean for leaving the environment
-stop_rendering = False
-
-# variables for keyboard event
-listener = None
-keyPressed = None
-keyReleased = None
-
-# function called when a keyboard key is pressed
-def on_press(keyname):
-   keyname = str(keyname).strip('\'')
-   #print('+' + keyname)
-   global keyPressed
-   keyPressed = keyname
-   
-   if keyname == "Key.enter":
-    global stop_rendering
-    stop_rendering = True
-
-# function called when a keyboard key is released
-def on_release(key):
-  pass
-
-# function than create a listener on keyboard events
-def checkWhichKeyIsPressed():
-  global listener
-
-  if listener == None:  
-    listener = Listener(on_press=on_press, on_release=on_release,suppress=True)
-    listener.start()
 
 # Can alternatively pass in p.DIRECT for for non-graphical version
 physicsClient = p.connect(p.GUI)
+
+# enable keyboard events
+p.configureDebugVisualizer( p.COV_ENABLE_KEYBOARD_SHORTCUTS, 1 )
 
 # Set Gravity to the environment
 p.setGravity(0, 0, -10, physicsClientId=physicsClient)
@@ -89,17 +58,25 @@ p.setAdditionalSearchPath(a_data_path)
 # a subdirectory franka_panda contain the urdf of panda (panda.urdf).
 
 # load a franka panda arm robot at a default position of [0, 0, 0]
-robotId = p.loadURDF("franka_panda/panda.urdf", basePosition=[0.0,0.0,0.0], useFixedBase=True)
+flags = p.URDF_ENABLE_CACHED_GRAPHICS_SHAPES | p.URDF_USE_INERTIA_FROM_FILE | p.URDF_USE_SELF_COLLISION
+robotId = p.loadURDF("franka_panda/panda.urdf", basePosition=[0.0,0.0,0.0], useFixedBase=True,flags=flags)
+assert robotId is not None, "Failed to load the panda model"
 
 # load a table, a tray, an object to grasp
 tableUid = p.loadURDF("table/table.urdf", basePosition=[0.5,0,-0.65])
+assert tableUid is not None, "Failed to load the table model"
+
 trayUid = p.loadURDF("tray/traybox.urdf", basePosition=[0.65,0,0])
+assert trayUid is not None, "Failed to load the traybox model"
+
 objectUid = p.loadURDF("random_urdfs/000/000.urdf", basePosition=[0.7,0,0.1])
+assert objectUid is not None, "Failed to load the object model"
 
 printAllInfo(robotId,physicsClient)
 
 # reset the initial view of the environment (to be closer to robot)
 p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-40, cameraTargetPosition=[0.55,-0.35,0.2])
+
 
 # print joint infos
 num_joints = p.getNumJoints(robotId, physicsClientId=physicsClient)
@@ -161,59 +138,62 @@ print("=> Num total of joints={0}, num of joints with inital position={1}".forma
 # joint name used ->{'panda_joint1': 0, 'panda_joint2': 1, 'panda_joint3': 2, 'panda_joint4': 3, 'panda_joint5': 4, 'panda_joint6': 5, 'panda_joint7': 6, 'panda_finger_joint1': 9, 'panda_finger_joint2': 10}
 print("joint name used ->{0}".format(joint_name_to_ids))
 
-# create keyboard listener and start to listen keyboard events
-checkWhichKeyIsPressed()
 
-while not stop_rendering:
-  p.configureDebugVisualizer(p.COV_ENABLE_SINGLE_STEP_RENDERING, physicsClientId=physicsClient)
+while True:
+    
+    p.configureDebugVisualizer(p.COV_ENABLE_SINGLE_STEP_RENDERING, physicsClientId=physicsClient)
+    
+    keys = p.getKeyboardEvents()
+    
+    # Enter event = 65309
+    if 65309 in keys:
+      break
   
-  if (keyPressed is not None):
-    #print("keyPressed = ",keyPressed)
-    
-    if keyPressed.lower() == 'p': # Go to grasp position
-      for joint_name in joint_name_to_ids.keys():
-         #print("joint : {0}, id : {1}, pose: {2}".format(joint_name,joint_name_to_ids[joint_name],pose_grasp_positions[joint_name]))
-         p.setJointMotorControl2(robotId, joint_name_to_ids[joint_name], p.POSITION_CONTROL,
-                                        targetPosition=pose_grasp_positions[joint_name],
-                                        positionGain=0.2, velocityGain=1.0,
-                                        physicsClientId=physicsClient)
-                                        
-    elif keyPressed.lower() == 'i': # Go to initial position
-       for joint_name in joint_name_to_ids.keys():
-         p.setJointMotorControl2(robotId, joint_name_to_ids[joint_name], p.POSITION_CONTROL,
-                                        targetPosition=initial_positions[joint_name],
-                                        positionGain=0.2, velocityGain=1.0,
-                                        physicsClientId=physicsClient)
-                                        
-    elif keyPressed.lower() == 'd': # Descends vertically on the object
-        p.setJointMotorControl2(robotId, 1, 
-                        p.POSITION_CONTROL,targetPosition=math.pi/4.+.15,
-                                        positionGain=0.2, velocityGain=1.0,
-                                        physicsClientId=physicsClient)
-        p.setJointMotorControl2(robotId, 3, 
-                        p.POSITION_CONTROL,targetPosition=-math.pi/2.+.15,
-                                        positionGain=0.2, velocityGain=1.0,
-                                        physicsClientId=physicsClient)
-                                        
-    elif keyPressed.lower() == "g": # Grasp the object by using force
-        p.setJointMotorControl2(robotId, 9, 
-                        p.POSITION_CONTROL, targetPosition=0.0, force = 300)
-        p.setJointMotorControl2(robotId, 10, 
-                        p.POSITION_CONTROL, targetPosition=0.0, force = 300)
-                        
-    elif keyPressed.lower() == "r": # Remove the object from the traybox
-        p.setJointMotorControl2(robotId, 1, 
-                        p.POSITION_CONTROL,targetPosition=math.pi/4.-1,
-                                        physicsClientId=physicsClient)
-        p.setJointMotorControl2(robotId, 3, 
-                        p.POSITION_CONTROL,targetPosition=-math.pi/2.-1,
-                                        physicsClientId=physicsClient)
-    keyPressed = None
-	   
-  p.stepSimulation()
 
-# stop the keyboard listener
-listener.stop()
+    if 112 in keys: # Go to grasp position (with letter 'p' = 112)
+      for joint_name in joint_name_to_ids.keys():
+          #print("joint : {0}, id : {1}, pose: {2}".format(joint_name,joint_name_to_ids[joint_name],pose_grasp_positions[joint_name]))
+          p.setJointMotorControl2(robotId, joint_name_to_ids[joint_name], p.POSITION_CONTROL,
+                    targetPosition=pose_grasp_positions[joint_name],
+                    positionGain=0.2, velocityGain=1.0,
+                    physicsClientId=physicsClient)
+                    
+    elif 105 in keys: # Go to initial position (with letter 'i' = 105)
+       for joint_name in joint_name_to_ids.keys():
+           p.setJointMotorControl2(robotId, joint_name_to_ids[joint_name], p.POSITION_CONTROL,
+                    targetPosition=initial_positions[joint_name],
+                    positionGain=0.2, velocityGain=1.0,
+                    physicsClientId=physicsClient)
+                    
+    elif 100 in keys: # Descends vertically on the object (with letter 'd' = 100)
+        p.setJointMotorControl2(robotId, 1, 
+                                p.POSITION_CONTROL,targetPosition=math.pi/4.+.15,
+                                positionGain=0.2, velocityGain=1.0,
+                                physicsClientId=physicsClient)
+        p.setJointMotorControl2(robotId, 3, 
+                                p.POSITION_CONTROL,targetPosition=-math.pi/2.+.15,
+                                positionGain=0.2, velocityGain=1.0,
+                                physicsClientId=physicsClient)
+                    
+    elif 103 in keys: # Grasp the object by using force (with letter 'g' = 103)
+        p.setJointMotorControl2(robotId, 9, 
+                                p.POSITION_CONTROL,targetPosition=0.0, force = 300,
+                                physicsClientId=physicsClient)
+        p.setJointMotorControl2(robotId, 10, 
+                                p.POSITION_CONTROL,targetPosition=0.0, force = 300,
+                                physicsClientId=physicsClient)
     
+    elif 114 in keys: # Remove the object from the traybox (with letter 'r' = 114)
+        p.setJointMotorControl2(robotId, 1, 
+                                p.POSITION_CONTROL,targetPosition=math.pi/4.-1,
+                    physicsClientId=physicsClient)
+        p.setJointMotorControl2(robotId, 3, 
+                                p.POSITION_CONTROL,targetPosition=-math.pi/2.-1,
+                    physicsClientId=physicsClient)
+       
+    	   
+    p.stepSimulation(physicsClientId=physicsClient)
+    
+   
 # disconnect from the bullet environment
 p.disconnect()
