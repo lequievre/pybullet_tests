@@ -142,6 +142,9 @@ with Listener(
 ==============================================
 = OpenAI gym - How to                        =
 ==============================================
+-> How to install gym :
+
+pip3 install gym
 
 -> How to install a new gym package :
 
