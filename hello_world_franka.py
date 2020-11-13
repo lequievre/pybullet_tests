@@ -5,6 +5,15 @@ Laurent LEQUIEVRE
 Research Engineer, CNRS (France)
 Institut Pascal UMR6602
 laurent.lequievre@uca.fr
+
+Grasp a object in a trailbox (robot and trailbox are on a table)
+keyboard keys used:
+    - 'i' to set the panda to an initial position
+    - 'p' to set the panda to a pre grasp position
+    - 'd' to descend vertically the panda
+    - 'h' to grasp the object (sorry but the letter 'g' is a shortcut in pybullet for removing the ground)
+    - 'r' to remove the object from the trailbox
+    - 'Enter' to leave the pybullet environment
 """
 
 # lib pybullet -> simulation and learning environment
@@ -14,7 +23,7 @@ import pybullet_data
 
 import math
 
-
+# switch tool to convert a numeric value to string value
 switcher_type_name = {
         p.JOINT_REVOLUTE: "JOINT_REVOLUTE",
         p.JOINT_PRISMATIC: "JOINT_PRISMATIC",
@@ -23,6 +32,7 @@ switcher_type_name = {
         p.JOINT_FIXED: "JOINT FIXED"
     }
 
+# function to print joint informations of a robot
 def printAllInfo(robotid, clientId):
   print("=================================")
   print("All Robot joints info")
@@ -41,11 +51,14 @@ def printAllInfo(robotid, clientId):
 # Can alternatively pass in p.DIRECT for for non-graphical version
 physicsClient = p.connect(p.GUI)
 
+p.resetSimulation()
+
 # enable keyboard events
 p.configureDebugVisualizer( p.COV_ENABLE_KEYBOARD_SHORTCUTS, 1 )
 
 # Set Gravity to the environment
 p.setGravity(0, 0, -10, physicsClientId=physicsClient)
+#p.setPhysicsEngineParameter( fixedTimeStep=TIME_STEP, numSolverIterations=30, numSubSteps=1 )
 
 # Get the default pybullet data path
 a_data_path = pybullet_data.getDataPath()
@@ -72,13 +85,13 @@ assert trayUid is not None, "Failed to load the traybox model"
 objectUid = p.loadURDF("random_urdfs/000/000.urdf", basePosition=[0.7,0,0.1])
 assert objectUid is not None, "Failed to load the object model"
 
+# print joint informations of panda robot
 printAllInfo(robotId,physicsClient)
 
 # reset the initial view of the environment (to be closer to robot)
 p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-40, cameraTargetPosition=[0.55,-0.35,0.2])
 
-
-# print joint infos
+# print nb joints of robot panda
 num_joints = p.getNumJoints(robotId, physicsClientId=physicsClient)
 print("=> num of joints = {0}".format(num_joints))
 
@@ -101,7 +114,7 @@ idx = 0
 joint_name_to_ids = {}
 joint_type_name = ""
 
-
+# print informations and set initial position to revolute and prismatic joint of robot panda
 for i in range(num_joints):
   joint_info = p.getJointInfo(robotId, i, physicsClientId=physicsClient)
   joint_name = joint_info[1].decode("UTF-8")
@@ -132,26 +145,27 @@ for i in range(num_joints):
 
       idx += 1
 
-# 12 joints in total, 9 joints used
+# 12 joints in total, 9 joints (revolute and prismatic) used
 print("=> Num total of joints={0}, num of joints with inital position={1}".format(num_joints,idx))
 
 # joint name used ->{'panda_joint1': 0, 'panda_joint2': 1, 'panda_joint3': 2, 'panda_joint4': 3, 'panda_joint5': 4, 'panda_joint6': 5, 'panda_joint7': 6, 'panda_finger_joint1': 9, 'panda_finger_joint2': 10}
-print("joint name used ->{0}".format(joint_name_to_ids))
+# print("joint name used ->{0}".format(joint_name_to_ids))
 
-
+# infinite loop to move the panda in function of some keyboard events
 while True:
     
     p.configureDebugVisualizer(p.COV_ENABLE_SINGLE_STEP_RENDERING, physicsClientId=physicsClient)
     
+    # look if there is keyboard event and put it in a dictionary named keys
     keys = p.getKeyboardEvents()
     
-    # Enter event = 65309
+    # 'Enter' event = 65309, if so .. break the loop
     if 65309 in keys:
       break
   
-
     if 112 in keys: # Go to grasp position (with letter 'p' = 112)
       for joint_name in joint_name_to_ids.keys():
+          assert joint_name in pose_grasp_positions.keys(), "joint {0} not in grasp positions !".format(joint_name)
           #print("joint : {0}, id : {1}, pose: {2}".format(joint_name,joint_name_to_ids[joint_name],pose_grasp_positions[joint_name]))
           p.setJointMotorControl2(robotId, joint_name_to_ids[joint_name], p.POSITION_CONTROL,
                     targetPosition=pose_grasp_positions[joint_name],
@@ -160,6 +174,7 @@ while True:
                     
     elif 105 in keys: # Go to initial position (with letter 'i' = 105)
        for joint_name in joint_name_to_ids.keys():
+           assert joint_name in initial_positions.keys(), "joint {0} not in initial positions !".format(joint_name)
            p.setJointMotorControl2(robotId, joint_name_to_ids[joint_name], p.POSITION_CONTROL,
                     targetPosition=initial_positions[joint_name],
                     positionGain=0.2, velocityGain=1.0,
@@ -175,7 +190,7 @@ while True:
                                 positionGain=0.2, velocityGain=1.0,
                                 physicsClientId=physicsClient)
                     
-    elif 103 in keys: # Grasp the object by using force (with letter 'g' = 103)
+    elif 104 in keys: # Grasp the object by using force (with letter 'h' = 103)
         p.setJointMotorControl2(robotId, 9, 
                                 p.POSITION_CONTROL,targetPosition=0.0, force = 300,
                                 physicsClientId=physicsClient)
@@ -191,9 +206,9 @@ while True:
                                 p.POSITION_CONTROL,targetPosition=-math.pi/2.-1,
                     physicsClientId=physicsClient)
        
-    	   
+    # let the simulation to redraw	   
     p.stepSimulation(physicsClientId=physicsClient)
     
-   
+
 # disconnect from the bullet environment
 p.disconnect()
