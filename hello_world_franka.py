@@ -19,6 +19,28 @@ import math
 # pip3 install pynput
 from pynput.keyboard import Key, Listener
 
+switcher_type_name = {
+        p.JOINT_REVOLUTE: "JOINT_REVOLUTE",
+        p.JOINT_PRISMATIC: "JOINT_PRISMATIC",
+        p.JOINT_SPHERICAL: "JOINT SPHERICAL",
+        p.JOINT_PLANAR: "JOINT PLANAR",
+        p.JOINT_FIXED: "JOINT FIXED"
+    }
+
+def printAllInfo(robotid, clientId):
+  print("=================================")
+  print("All Robot joints info")
+  num_joints = p.getNumJoints(robotid, physicsClientId=clientId)
+  print("=> num of joints = {0}".format(num_joints))
+  for i in range(num_joints):
+    joint_info = p.getJointInfo(robotid, i, physicsClientId=clientId)
+    joint_name = joint_info[1].decode("UTF-8")
+    joint_type = joint_info[2]
+    joint_type_name = switcher_type_name.get(joint_type,"Invalid type")
+    joint_lower_limit, joint_upper_limit = joint_info[8:10]
+    print("i={0}, name={1}, type={2}, lower={3}, upper={4}".format(i,joint_name,joint_type_name,joint_lower_limit,joint_upper_limit))
+  print("=================================")
+  
 # boolean for leaving the environment
 stop_rendering = False
 
@@ -74,6 +96,8 @@ tableUid = p.loadURDF("table/table.urdf", basePosition=[0.5,0,-0.65])
 trayUid = p.loadURDF("tray/traybox.urdf", basePosition=[0.65,0,0])
 objectUid = p.loadURDF("random_urdfs/000/000.urdf", basePosition=[0.7,0,0.1])
 
+printAllInfo(robotId,physicsClient)
+
 # reset the initial view of the environment (to be closer to robot)
 p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-40, cameraTargetPosition=[0.55,-0.35,0.2])
 
@@ -100,10 +124,6 @@ idx = 0
 joint_name_to_ids = {}
 joint_type_name = ""
 
-switcher_type_name = {
-        p.JOINT_REVOLUTE: "JOINT_REVOLUTE",
-        p.JOINT_PRISMATIC: "JOINT_PRISMATIC"
-    }
 
 for i in range(num_joints):
   joint_info = p.getJointInfo(robotId, i, physicsClientId=physicsClient)
