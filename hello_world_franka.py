@@ -40,13 +40,19 @@ def printAllInfo(robotid, clientId):
   print("=> num of joints = {0}".format(num_joints))
   for i in range(num_joints):
     joint_info = p.getJointInfo(robotid, i, physicsClientId=clientId)
+    #print(joint_info)
     joint_name = joint_info[1].decode("UTF-8")
     joint_type = joint_info[2]
+    child_link_name = joint_info[12].decode("UTF-8")
+    link_pos_in_parent_frame = p.getLinkState(robotId, i)[0]
+    link_orien_in_parent_frame = p.getLinkState(robotId, i)[1]
     joint_type_name = switcher_type_name.get(joint_type,"Invalid type")
     joint_lower_limit, joint_upper_limit = joint_info[8:10]
-    print("i={0}, name={1}, type={2}, lower={3}, upper={4}".format(i,joint_name,joint_type_name,joint_lower_limit,joint_upper_limit))
+    joint_limit_effort = joint_info[10]
+    joint_limit_velocity = joint_info[11]
+    print("i={0}, name={1}, type={2}, lower={3}, upper={4}, effort={5}, velocity={6}".format(i,joint_name,joint_type_name,joint_lower_limit,joint_upper_limit,joint_limit_effort,joint_limit_velocity))
+    print("child link name={0}, pos={1}, orien={2}".format(child_link_name,link_pos_in_parent_frame,link_orien_in_parent_frame))
   print("=================================")
-  
 
 # Can alternatively pass in p.DIRECT for for non-graphical version
 physicsClient = p.connect(p.GUI)
@@ -57,7 +63,7 @@ p.resetSimulation()
 p.configureDebugVisualizer( p.COV_ENABLE_KEYBOARD_SHORTCUTS, 1 )
 
 # Set Gravity to the environment
-p.setGravity(0, 0, -10, physicsClientId=physicsClient)
+p.setGravity(0, 0, -9.81, physicsClientId=physicsClient)
 #p.setPhysicsEngineParameter( fixedTimeStep=TIME_STEP, numSolverIterations=30, numSubSteps=1 )
 
 # Get the default pybullet data path
@@ -74,6 +80,10 @@ p.setAdditionalSearchPath(a_data_path)
 flags = p.URDF_ENABLE_CACHED_GRAPHICS_SHAPES | p.URDF_USE_INERTIA_FROM_FILE | p.URDF_USE_SELF_COLLISION
 robotId = p.loadURDF("franka_panda/panda.urdf", basePosition=[0.0,0.0,0.0], useFixedBase=True,flags=flags)
 assert robotId is not None, "Failed to load the panda model"
+
+# eef loaded position
+state_robot = p.getLinkState(robotId, 11)[0]
+print("End Effector Position (after load)= ",state_robot)
 
 # load a table, a tray, an object to grasp
 tableUid = p.loadURDF("table/table.urdf", basePosition=[0.5,0,-0.65])
@@ -147,6 +157,11 @@ for i in range(num_joints):
 
 # 12 joints in total, 9 joints (revolute and prismatic) used
 print("=> Num total of joints={0}, num of joints with inital position={1}".format(num_joints,idx))
+
+
+# eef position
+state_robot = p.getLinkState(robotId, 11)[0]
+print("End Effector Position (after initial) = ",state_robot)
 
 # joint name used ->{'panda_joint1': 0, 'panda_joint2': 1, 'panda_joint3': 2, 'panda_joint4': 3, 'panda_joint5': 4, 'panda_joint6': 5, 'panda_joint7': 6, 'panda_finger_joint1': 9, 'panda_finger_joint2': 10}
 # print("joint name used ->{0}".format(joint_name_to_ids))
