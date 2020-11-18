@@ -99,15 +99,17 @@ conda remove --name mySuperName --all
 = How to install pybullet                 =
 ===========================================
 
-pip3 install pybullet --upgrade --user
+pip install pybullet --upgrade --user
 
-
--> Unfortunately the version of pybullet on anaconda is not updated. So I used a classic installation with pip3 install.
-
+-> Unfortunately the version of pybullet on anaconda is not updated. So I used a classic installation with pip install.
 
 pybuller API documentation:
 https://pybullet.org/Bullet/BulletFull/
 
+Take care, the parameter '--user' install 'pybullet' into a user 'site-packages' and not global !
+
+To install it in global, use in place :
+pip install pybullet
 
 =========================================
 = How to get key pressed on linux       =
@@ -167,14 +169,14 @@ Is also by default part of the Python search path, so modules installed there ca
 
 ** User Site (per-user site package directory)
 python -m site --user-site
--> On my computer I got : ~/.local/lib/python3.8/site-packages
+-> On my computer I got : /home/laurent/.local/lib/python3.8/site-packages
 
 python -m site --user-base
--> On my computer I got : ~/.local
+-> On my computer I got : /home/laurent/.local
 
 ** Global Site
 python -c 'import site; print(site.getsitepackages())'
--> On my computer I got : ~/anaconda3/lib/python3.8/site-packages
+-> On my computer I got : /home/laurent/anaconda3/lib/python3.8/site-packages
 -> Anaconda 3 is installed by default on my computer
 
 How to install a python package in a user site-package :
@@ -191,7 +193,7 @@ pip install pybullet
 how to get the installed site-package of a python package :
 ---------------------------------------------------------
 pip show pybullet
-~/anaconda3/lib/python3.8/site-packages
+/home/laurent/anaconda3/lib/python3.8/site-packages
 
 But what about 'dist-packages' ?
 ------------------------------
@@ -226,7 +228,7 @@ virtualenv creates a folder which contains all the necessary executables to use 
 virtualenv --version
 -> virtualenv 20.0.20 from /usr/local/lib/python3.5/dist-packages/virtualenv/__init__.py
 
-How to create a virtualenv ? (in a 'project_folder' locate in home directory for exemple)
+How to create a virtualenv ? (in a 'project_folder' locate in home directory '/home/laurent' for example)
 --------------------------
 cd ~
 mkdir project_folder
@@ -246,12 +248,12 @@ How to activate my virtual env named 'my_venv' ?
 ----------------------------------------------
 source my_venv/bin/activate
 
--> The name of the current virtual environment will now appear on the left of the prompt
+-> The name of the current virtual environment will now appear on the left of the prompt. (like anaconda)
 -> the pip and python version now depend on the virtualenv 'my_env'.
 -> 'pip install a_package' command will install the package into the 'site-packages' of 'my_venv'.
 
 pip --version
-pip 20.1 from ~/project_folder/my_venv/lib/python3.5/site-packages/pip (python 3.5)
+pip 20.1 from /home/laurent/project_folder/my_venv/lib/python3.5/site-packages/pip (python 3.5)
 
 python --version
 Python 3.5.2
@@ -260,11 +262,9 @@ How to deactivate my virtual env named 'my_venv' ?
 ------------------------------------------------
 deactivate
 
-
-An Example :
+An Example : (Create a virtualenv for RL with pybullet and gym packages)
 -----------
 
--> Create a virtualenv for RL with pybullet and gym packages :
 cd ~
 mkdir project_folder
 cd project_folder
@@ -273,21 +273,33 @@ virtualenv rl_env
 source rl_env/bin/activate
 
 pip --version
-pip 20.1 from ~/project_folder/rl_env/lib/python3.5/site-packages/pip (python 3.5)
+--> pip 20.1 from /home/laurent/project_folder/rl_env/lib/python3.5/site-packages/pip (python 3.5)
 
 pip install pybullet gym
 
--> Now the pybullet and gym packages are installed into the site-packages directory :
-~/project_folder/rl_env/lib/python3.5/site-packages
+--> Now the pybullet and gym packages are installed into the 'site-packages' directory :
+/home/laurent/project_folder/rl_env/lib/python3.5/site-packages
 
 python --version
-Python 3.5.2
+--> Python 3.5.2
 
 python -c 'import site; print(site.getsitepackages())'
-['~/project_folder/rl_env/lib/python3.5/site-packages', 
-'~/project_folder/rl_env/local/lib/python3.5/dist-packages', 
-'~/project_folder/rl_env/lib/python3/dist-packages', 
-'~/project_folder/rl_env/lib/python3.5/dist-packages']   
+--> ['/home/laurent/project_folder/rl_env/lib/python3.5/site-packages', 
+'/home/laurent/project_folder/rl_env/local/lib/python3.5/dist-packages', 
+'/home/laurent/project_folder/rl_env/lib/python3/dist-packages', 
+'/home/laurent/project_folder/rl_env/lib/python3.5/dist-packages']   
+
+pip show pybullet
+--> Name: pybullet
+Version: 3.0.6
+Summary: Official Python Interface for the Bullet Physics SDK specialized for Robotics Simulation and Reinforcement Learning
+Home-page: https://github.com/bulletphysics/bullet3
+Author: Erwin Coumans, Yunfei Bai, Jasmine Hsu
+Author-email: erwincoumans@google.com
+License: zlib
+Location: /home/laurent/project_folder/rl_env/lib/python3.5/site-packages
+Requires: 
+Required-by:
 
 
 deactivate
