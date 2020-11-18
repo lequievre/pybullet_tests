@@ -8,6 +8,10 @@ laurent.lequievre@uca.fr
 import pybullet as p
 import pybullet_data
 
+"""import os, inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+os.sys.path.insert(0, currentdir)"""
+
 
 class pandaIP:
 
@@ -34,6 +38,12 @@ class pandaIP:
     
     def reset(self):
         flags = p.URDF_ENABLE_CACHED_GRAPHICS_SHAPES | p.URDF_USE_INERTIA_FROM_FILE | p.URDF_USE_SELF_COLLISION
+        a_data_path = pybullet_data.getDataPath()
+        print("=> data path -> {0}".format(a_data_path))
+
+        # Add a search data path
+        p.setAdditionalSearchPath(a_data_path)
+        
         self.robot_id = p.loadURDF("franka_panda/panda.urdf",
             basePosition=self._base_position, 
             useFixedBase=True, 
