@@ -14,6 +14,7 @@ from gym_panda_ip.envs.panda_ip_env import PandaIPEnv
 def main():
 
     env = PandaIPEnv(client_id)
+
     env.reset()
 
     for _ in range(100):

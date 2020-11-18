@@ -164,6 +164,10 @@ which contain the source directory of my gym package : /home/laurent/Tests_PyBul
 = Python - Notions of site packages + some pip commands =
 =========================================================
 
+https://docs.python.org/3/install/
+https://stackoverflow.com/questions/31384639/what-is-pythons-site-packages-directory
+https://stackoverflow.com/questions/42988977/what-is-the-purpose-of-pip-install-user
+
 'site-packages' is the target directory of manually built Python packages.
 Is also by default part of the Python search path, so modules installed there can be imported easily afterwards.
 
@@ -221,6 +225,7 @@ This allows you to keep the two installations separate, especially since Debian 
 =========================================================
 
 https://docs.python-guide.org/dev/virtualenvs/
+http://sametmax.com/les-environnement-virtuels-python-virtualenv-et-virtualenvwrapper/
 
 virtualenv is a tool to create isolated Python environments. (like anaconda)
 virtualenv creates a folder which contains all the necessary executables to use the packages that a Python project would need.
