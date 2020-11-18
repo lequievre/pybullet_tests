@@ -14,7 +14,7 @@ os.sys.path.insert(0, currentdir)"""
 
 
 class pandaIP:
-
+    
     # Init robot franka positions
     # Set initial positions
     initial_positions = {
@@ -22,9 +22,16 @@ class pandaIP:
         'panda_joint4': -2.6, 'panda_joint5': -0.30, 'panda_joint6': 2.0,
         'panda_joint7': 1.0, 'panda_finger_joint1': 0.02, 'panda_finger_joint2': 0.02,
         }
+    
+    """initial_positions = {
+        'panda_joint1': 0.98, 'panda_joint2': 0.458, 'panda_joint3': 0.31,
+        'panda_joint4': -2.24, 'panda_joint5': -0.30, 'panda_joint6': 2.66,
+        'panda_joint7': 2.32, 'panda_finger_joint1': 0.02, 'panda_finger_joint2': 0.02,
+        }"""
 
-    def __init__(self, physicsClientId, base_position=(0.0, 0, 0.625)):
+    def __init__(self, physicsClientId=None, urdfRoot=pybullet_data.getDataPath(), base_position=(0.0, 0, 0)):
         self._physics_client_id = physicsClientId
+        self._urdfRoot = urdfRoot
         self._base_position = base_position
         
         self._num_dof = 7
@@ -34,15 +41,13 @@ class pandaIP:
         
         self.robot_id = None
         
+        # Add a search data path
+        p.setAdditionalSearchPath(self._urdfRoot)
+         
         self.reset()
     
     def reset(self):
         flags = p.URDF_ENABLE_CACHED_GRAPHICS_SHAPES | p.URDF_USE_INERTIA_FROM_FILE | p.URDF_USE_SELF_COLLISION
-        a_data_path = pybullet_data.getDataPath()
-        print("=> data path -> {0}".format(a_data_path))
-
-        # Add a search data path
-        p.setAdditionalSearchPath(a_data_path)
         
         self.robot_id = p.loadURDF("franka_panda/panda.urdf",
             basePosition=self._base_position, 
