@@ -144,7 +144,7 @@ with Listener(
 ==============================================
 -> How to install gym :
 
-pip3 install gym
+pip install gym
 
 -> How to install a new gym package :
 
@@ -156,3 +156,139 @@ pip install -e .
 the package is now installed, the pip install command create a file :
 /home/laurent/anaconda3/lib/python3.8/site-packages/gym-panda-ip.egg-link 
 which contain the source directory of my gym package : /home/laurent/Tests_PyBullet/pybullet/gym-panda-ip
+
+
+=========================================================
+= Python - Notions of site packages + some pip commands =
+=========================================================
+
+'site-packages' is the target directory of manually built Python packages.
+Is also by default part of the Python search path, so modules installed there can be imported easily afterwards.
+
+** User Site (per-user site package directory)
+python -m site --user-site
+-> On my computer I got : ~/.local/lib/python3.8/site-packages
+
+python -m site --user-base
+-> On my computer I got : ~/.local
+
+** Global Site
+python -c 'import site; print(site.getsitepackages())'
+-> On my computer I got : ~/anaconda3/lib/python3.8/site-packages
+-> Anaconda 3 is installed by default on my computer
+
+How to install a python package in a user site-package :
+------------------------------------------------------
+pip install pybullet --user
+
+pip install --help
+--user (option)  Install to the Python user install directory for your platform. Typically ~/.local/
+
+how to install a python package in a global site-package :
+---------------------------------------------------------
+pip install pybullet
+
+how to get the installed site-package of a python package :
+---------------------------------------------------------
+pip show pybullet
+~/anaconda3/lib/python3.8/site-packages
+
+But what about 'dist-packages' ?
+------------------------------
+
+dist-packages is a Debian-specific convention that is also present in its derivatives, like Ubuntu. 
+Modules are installed to dist-packages when they come from the Debian package manager into this location:
+
+/usr/lib/pythonX.Y/dist-packages
+
+Since easy_install and pip are installed from the package manager, they also use dist-packages, but they put packages here:
+
+/usr/local/lib/pythonX.Y/dist-packages
+
+'dist-packages' instead of 'site-packages' ?
+------------------------------------------
+
+Third party Python software installed from Debian packages goes into dist-packages, not site-packages. 
+This is to reduce conflict between the system Python, and any from-source Python build you might install manually.
+
+This means that if you manually install Python from source, it uses the site-packages directory. 
+This allows you to keep the two installations separate, especially since Debian and Ubuntu rely on the system version of Python for many system utilities.
+
+=========================================================
+= virtualenv  (another tool for python environment)     =
+=========================================================
+
+https://docs.python-guide.org/dev/virtualenvs/
+
+virtualenv is a tool to create isolated Python environments. (like anaconda)
+virtualenv creates a folder which contains all the necessary executables to use the packages that a Python project would need.
+
+virtualenv --version
+-> virtualenv 20.0.20 from /usr/local/lib/python3.5/dist-packages/virtualenv/__init__.py
+
+How to create a virtualenv ? (in a 'project_folder' locate in home directory for exemple)
+--------------------------
+cd ~
+mkdir project_folder
+cd project_folder
+virtualenv my_venv
+
+-> created virtual environment CPython3.5.2.final.0-64 in 117ms
+  creator CPython3Posix(dest=/home/laurent/project_folder/my_venv, clear=False, global=False)
+  seeder FromAppData(download=False, pip=latest, setuptools=latest, wheel=latest, via=copy, app_data_dir=/home/laurent/.local/share/virtualenv/seed-app-data/v1.0.1)
+  activators CShellActivator,PowerShellActivator,XonshActivator,FishActivator,BashActivator,PythonActivator
+
+It will create a folder 'my_env' in the current directory 'project_folder',
+which will contain the Python executable files, 
+and a copy of the pip library which you can use to install other packages.
+
+How to activate my virtual env named 'my_venv' ?
+----------------------------------------------
+source my_venv/bin/activate
+
+-> The name of the current virtual environment will now appear on the left of the prompt
+-> the pip and python version now depend on the virtualenv 'my_env'.
+-> 'pip install a_package' command will install the package into the 'site-packages' of 'my_venv'.
+
+pip --version
+pip 20.1 from ~/project_folder/my_venv/lib/python3.5/site-packages/pip (python 3.5)
+
+python --version
+Python 3.5.2
+
+How to deactivate my virtual env named 'my_venv' ?
+------------------------------------------------
+deactivate
+
+
+An Example :
+-----------
+
+-> Create a virtualenv for RL with pybullet and gym packages :
+cd ~
+mkdir project_folder
+cd project_folder
+virtualenv rl_env
+
+source rl_env/bin/activate
+
+pip --version
+pip 20.1 from ~/project_folder/rl_env/lib/python3.5/site-packages/pip (python 3.5)
+
+pip install pybullet gym
+
+-> Now the pybullet and gym packages are installed into the site-packages directory :
+~/project_folder/rl_env/lib/python3.5/site-packages
+
+python --version
+Python 3.5.2
+
+python -c 'import site; print(site.getsitepackages())'
+['~/project_folder/rl_env/lib/python3.5/site-packages', 
+'~/project_folder/rl_env/local/lib/python3.5/dist-packages', 
+'~/project_folder/rl_env/lib/python3/dist-packages', 
+'~/project_folder/rl_env/lib/python3.5/dist-packages']   
+
+
+deactivate
+
