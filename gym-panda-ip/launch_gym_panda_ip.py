@@ -7,23 +7,27 @@ laurent.lequievre@uca.fr
 
 import pybullet as p
 
-client_id = p.connect(p.GUI)
+
+client_id = p.connect(p.GUI)    
 
 from gym_panda_ip.envs.panda_ip_env import PandaIPEnv
 
 def main():
 
     env = PandaIPEnv(client_id)
-
-    env.reset()
-
-    for _ in range(100):
-        env.render()
-        obs, reward, done, info = env.step(None) # No action, just to test it like that !
-        #obs, reward, done, info = env.step(
-        #   env.action_space.sample()) # take a random action
     
-    env.close()
+    for i_episode in range(20):
+        observation = env.reset()
+        for t in range(100):
+            env.render()
+            print(observation)
+            action = env.action_space.sample()
+            observation, reward, done, info = env.step(action)
+            if done:
+                print("Episode finished after {} timesteps".format(t+1))
+                break
+        env.close()
+    
 
 if __name__ == '__main__':
     main()
