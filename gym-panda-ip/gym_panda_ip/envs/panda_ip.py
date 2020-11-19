@@ -95,7 +95,7 @@ class PandaIP:
         
         orientation = p.getQuaternionFromEuler([0.,-math.pi,math.pi/2.])
         
-        dv = 0.005
+        dv = 0.05
         dx = action[0] * dv
         dy = action[1] * dv
         dz = action[2] * dv

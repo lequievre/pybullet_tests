@@ -35,20 +35,24 @@ class PandaIPEnv(gym.Env):
       
       self._physics_client_id = pybullet_client_id
       
-     # p.resetDebugVisualizerCamera(2.5, 90, -60, [0.52, -0.2, -0.33], physicsClientId=self._physics_client_id)
+      # reset the 3D OpenGL debug visualizer camera distance 
+      # (between eye and camera target position), camera yaw and pitch and camera target position.
       p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-40, cameraTargetPosition=[0.55,-0.35,0.2], physicsClientId=self._physics_client_id)
       
       
       self.action_space = spaces.Box(np.array([-1]*4), np.array([1]*4))
       self.observation_space = spaces.Box(np.array([-1]*5), np.array([1]*5))
         
+      # disable rendering before loading objects
       p.configureDebugVisualizer(p.COV_ENABLE_RENDERING,0)
+      
        # Load Robot Panda
       self._robot = PandaIP(self._physics_client_id, base_position=[0.0, 0.0, 0.0])
       
-      # Load World
+      # Load World (plane + table + tray + object)
       self._world = WorldIP(self._physics_client_id)
       
+      # enable rendering after loading objects
       p.configureDebugVisualizer(p.COV_ENABLE_RENDERING,1)
       
 
@@ -79,7 +83,8 @@ class PandaIPEnv(gym.Env):
         reward = 0
         done = True
     
-      info = {'object_position': state_object}
+      #info = {'object_position': state_object}
+      info = state_object
       self.observation = state_robot + state_fingers
       return np.array(self.observation).astype(np.float32), reward, done, info
       
