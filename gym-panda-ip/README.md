@@ -3,7 +3,7 @@ Research Engineer, CNRS (France)
 Institut Pascal UMR6602
 laurent.lequievre@uca.fr
 
-gym-panda-ip package
+* gym-panda-ip package
 
 forked from : https://github.com/mahyaret/gym-panda
 
