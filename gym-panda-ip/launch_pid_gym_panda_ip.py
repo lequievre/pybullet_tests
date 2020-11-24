@@ -5,17 +5,14 @@ Institut Pascal UMR6602
 laurent.lequievre@uca.fr
 """
 
-import pybullet as p
-
-
-client_id = p.connect(p.GUI)    
-
-from gym_panda_ip.envs.panda_ip_env import PandaIPEnv
+import gym
+import gym_panda_ip
 
 
 def main():
 
-    env = PandaIPEnv(client_id)
+    env = gym.make('panda-ip-v0')
+    observation = env.reset()
     
     done = False
     error = 0.01

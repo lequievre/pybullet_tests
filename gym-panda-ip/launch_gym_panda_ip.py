@@ -5,16 +5,13 @@ Institut Pascal UMR6602
 laurent.lequievre@uca.fr
 """
 
-import pybullet as p
-
-
-client_id = p.connect(p.GUI)    
-
-from gym_panda_ip.envs.panda_ip_env import PandaIPEnv
+import gym
+import gym_panda_ip
 
 def main():
 
-    env = PandaIPEnv(client_id)
+    env = gym.make('panda-ip-v0')
+    observation = env.reset()
     
     for i_episode in range(20):
         observation = env.reset()
@@ -22,6 +19,7 @@ def main():
             env.render()
             print(observation)
             action = env.action_space.sample()
+            print("action = {0}".format(action))
             observation, reward, done, info = env.step(action)
             if done:
                 print("Episode finished after {} timesteps".format(t+1))

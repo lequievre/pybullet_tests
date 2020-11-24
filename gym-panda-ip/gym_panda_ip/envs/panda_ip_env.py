@@ -27,21 +27,23 @@ MAX_EPISODE_LEN = 20*100
 class PandaIPEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, pybullet_client_id):
+    def __init__(self):
+      super().__init__()
+      
       print("PandaIPEnv -> __init__()")
       self._timeStep = 1. / 240. # 1 / 240 seconds
       
       self.step_counter = 0
       
-      self._physics_client_id = pybullet_client_id
+      self._physics_client_id = p.connect(p.GUI)
       
       # reset the 3D OpenGL debug visualizer camera distance 
       # (between eye and camera target position), camera yaw and pitch and camera target position.
       p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-40, cameraTargetPosition=[0.55,-0.35,0.2], physicsClientId=self._physics_client_id)
       
       
-      self.action_space = spaces.Box(np.array([-1]*4), np.array([1]*4))
-      self.observation_space = spaces.Box(np.array([-1]*5), np.array([1]*5))
+      #self.action_space = spaces.Box(np.array([-1]*4), np.array([1]*4))
+      #self.observation_space = spaces.Box(np.array([-1]*5), np.array([1]*5))
         
       # disable rendering before loading objects
       p.configureDebugVisualizer(p.COV_ENABLE_RENDERING,0)
@@ -70,6 +72,7 @@ class PandaIPEnv(gym.Env):
       
       state_fingers = self._robot.get_state_fingers()
       
+      # state_object[2] => position.z of object
       if state_object[2]>0.45:
             reward = 1
             done = True
@@ -130,6 +133,7 @@ class PandaIPEnv(gym.Env):
                                                   aspect=float(960) /720,
                                                   nearVal=0.1,
                                                   farVal=100.0)
+        # (width, height,rgbPixels (RGBA), depthPixels, segmentationMaskBuffer)
         (_, _, px, _, _) = p.getCameraImage(width=960,
                                            height=720,
                                            viewMatrix=view_matrix,
@@ -137,13 +141,16 @@ class PandaIPEnv(gym.Env):
                                            renderer=p.ER_BULLET_HARDWARE_OPENGL)
         
         rgb_array = np.array(px, dtype=np.uint8)
+        # 720 height x 960 width x 4 RGBA
         rgb_array = np.reshape(rgb_array, (720,960, 4))
         
+        # remove Alpha of RGBA data
         rgb_array = rgb_array[:, :, :3]
         return rgb_array
 
     def close(self):
         print("PandaIPEnv -> close()")
+        p.disconnect(self._physics_client_id)
     
     def _get_state(self):
         return self.observation
