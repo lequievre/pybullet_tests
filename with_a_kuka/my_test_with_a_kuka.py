@@ -92,7 +92,10 @@ print("-> link : end effector={0}, gripper={1}".format(linkNameEndEffector,linkN
 # reset the initial view of the environment (to be closer to robot)
 p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-40, cameraTargetPosition=[0.35,0.0,0.7])
 
-
+# reset the position and orientation of the base (root) of the robot kuka
+p.resetBasePositionAndOrientation(kukaUid, [-0.100000, 0.000000, 0.070000],
+                                      [0.000000, 0.000000, 0.000000, 1.000000])
+    
 #Add sliders for all joints (useful to move the joints)
 
 joint_name_to_ids = {} # dictionary to associate a joint name to index
@@ -110,6 +113,15 @@ for i in range(numJoints):
 		joint_name_to_slider[jointName] = slider  # save the slider of the joint name
 
 maxForce = 200 # define a maximum force value for moving joints with the sliders
+textColor = [1, 1, 1]
+shift = 0.05
+str_pos = ""
+
+idDebugText = p.addUserDebugText(str_pos, [shift, 0, .1],
+				   textColor,
+				   parentObjectUniqueId=kukaUid,
+				   parentLinkIndex=kukaEndEffectorIndex)
+    
 
 while True:
 	# look if there is keyboard event and put it in a dictionary named keys
@@ -129,7 +141,21 @@ while True:
 		# apply that value to the joint (in Position)
 		p.setJointMotorControl2(kukaUid,index,p.POSITION_CONTROL,targetPosition=value,force=maxForce,physicsClientId=physicsClient)
 
-      
+	
+	state = p.getLinkState(kukaUid, kukaEndEffectorIndex)
+	pos = state[0]
+	orn = state[1]
+	euler = p.getEulerFromQuaternion(orn)
+	
+	str_pos = "P:" + str(round(pos[0],2)) + "," + str(round(pos[1],2)) + "," + str(round(pos[2],2)) + ", O:" + str(round(euler[0],2)) + "," + str(round(euler[1],2)) + "," + str(round(euler[2],2))
+
+	p.removeUserDebugItem(idDebugText)
+
+	idDebugText = p.addUserDebugText(str_pos, [shift, 0, .1],
+				   textColor,
+				   parentObjectUniqueId=kukaUid,
+				   parentLinkIndex=kukaEndEffectorIndex)
+    
 	p.stepSimulation(physicsClientId=physicsClient) # let time to update the GUI
 
 # disconnect from the bullet environment
