@@ -15,7 +15,7 @@ lbr_iiwa_link_0 - J0 (revolute) - lbr_iiwa_link_1 - J1 (revolute) - lbr_iiwa_lin
 
 lbr_iiwa_link_7 - gripper_to_arm (continuous) - base_link - base_left_finger_joint (revolute) - left_finger - left_finger_base_joint (fixed) - left_finger_base - left_base_tip_joint (revolute) - left_finger_tip
 
-                                                base_link - base_right_finger_joint (revolute) - right_finger - right_finger_base_joint fixed) - right_finger_base - right_base_tip_joint (revolute) - right_finger_tip
+                                                base_link - base_right_finger_joint (revolute) - right_finger - right_finger_base_joint (fixed) - right_finger_base - right_base_tip_joint (revolute) - right_finger_tip
 """
 
 import pybullet as p
@@ -40,7 +40,7 @@ objects = p.loadSDF("kuka_iiwa/kuka_with_gripper2.sdf")
 kukaUid = objects[0]
 
 # Set Gravity to the environment
-p.setGravity(0, 0, -9.81, physicsClientId=physicsClient)
+#p.setGravity(0, 0, -9.81, physicsClientId=physicsClient)
 
 # Get number of joints of kuka robot
 numJoints = p.getNumJoints(kukaUid)
@@ -51,7 +51,7 @@ for i in range(numJoints):
 	jointInfo = p.getJointInfo(kukaUid, i) # get info about Joint indexed by i
 	ll, ul = jointInfo[8:10] # get lower and upper joint limit
 	jr = ul - ll # calculate joint range (upper - limit)
-	qIndex = jointInfo[3] # ???
+	qIndex = jointInfo[3] # qIndex=-1 when joint is fixed
 	
 	jointName=str(jointInfo[1].decode("utf-8")) # get joint name
 	childLinkName=str(jointInfo[12].decode("utf-8")) # get child link name of the joint
@@ -67,6 +67,7 @@ for i in range(numJoints):
 		parentLinkName="None"
 
 	# I don't understand the utility of qIndex value ???
+	# qIndex=-1 when joint is fixed, it is the case of 'left_finger_base_joint' and 'right_finger_base_joint'
 	if qIndex > -1:
 		print("i={0}, joint name=\"{1}\" (qIndex={2})".format(i,jointName,qIndex))
 		print("-> link child=\"{0}\", parent=\"{1}\"".format(childLinkName,parentLinkName))
@@ -101,6 +102,12 @@ p.resetBasePositionAndOrientation(kukaUid, [-0.100000, 0.000000, 0.070000],
 joint_name_to_ids = {} # dictionary to associate a joint name to index
 joint_name_to_slider = {} # dictionary to assciate a joint name to a slider
 
+# Put kuka robot in an 'initial position' for grasping
+initial_positions = [0.006418, 0.413184, -0.011401, -1.589317, 0.005379, 1.137684, -0.006539]
+joint_lower  = []
+joint_upper = []
+joint_range = []
+joint_index = 0
 for i in range(numJoints):
 	jointInfo = p.getJointInfo(kukaUid, i) # get joint info of joint indexed by i
 	jointName=str(jointInfo[1].decode("utf-8")) # get name of the joint
@@ -108,21 +115,48 @@ for i in range(numJoints):
 	
 	if (jointType == p.JOINT_REVOLUTE):
 		ll, ul = jointInfo[8:10] # get lower and upper limits
-		slider = p.addUserDebugParameter(jointName, ll, ul, 0.0) # add a slider for that joint with the limits
+		
+		if (joint_index < 7): # only for the 7 first joints
+			joint_value = initial_positions[joint_index]
+			joint_lower.append(ll)
+			joint_upper.append(ul)
+			joint_range.append(ul-ll)
+			p.setJointMotorControl2(kukaUid,joint_index,p.POSITION_CONTROL,targetPosition=joint_value,positionGain=0.2,velocityGain=1.0,physicsClientId=physicsClient)
+		else:
+			joint_value = 0.0
+		
+		slider = p.addUserDebugParameter(jointName, ll, ul, joint_value) # add a slider for that joint with the limits
 		joint_name_to_ids[jointName] = i # save the index of the joint name
 		joint_name_to_slider[jointName] = slider  # save the slider of the joint name
+		joint_index=joint_index+1
+		
+	p.stepSimulation(physicsClientId=physicsClient) # let time to update the GUI
+	
+#maxForce = 200 # define a maximum force value for moving joints with the sliders
+print("limits -> lower={0}, upper={1}, range={2}".format(joint_lower,joint_upper,joint_range))
 
-maxForce = 200 # define a maximum force value for moving joints with the sliders
-textColor = [1, 1, 1]
+
+# set some useful parameters necessary when printing position and orientation of end effector link
+textColor = [0.0, 0.0, 0.0]
 shift = 0.05
 str_pos = ""
 
-idDebugText = p.addUserDebugText(str_pos, [shift, 0, .1],
-				   textColor,
+# Print position and orientation of kuka end effector link.
+# textPosition is relative to position of end effector link (parentLinkIndex=kukaEndEffectorIndex)
+idEEText = p.addUserDebugText(str_pos, [shift, 0, .1],
+				   textColor, textSize=15.0,
 				   parentObjectUniqueId=kukaUid,
 				   parentLinkIndex=kukaEndEffectorIndex)
-    
 
+
+# Print joint values after an IK of EEF link position and orientation (to debug IK)
+str_ik_pos = ""
+idEEIKText = p.addUserDebugText(str_ik_pos, [-1.0, -0.5, 0.0],
+				   textColor, textSize=2.0,
+				   parentObjectUniqueId=kukaUid)
+
+#jointPoses = p.calculateInverseKinematics(self.kukaUid, self.kukaEndEffectorIndex, pos,
+#                                                    orn, self.ll, self.ul, self.jr, self.rp)
 while True:
 	# look if there is keyboard event and put it in a dictionary named keys
 	keys = p.getKeyboardEvents()
@@ -139,22 +173,41 @@ while True:
 		value = p.readUserDebugParameter(slider) # read the slider value
 		
 		# apply that value to the joint (in Position)
-		p.setJointMotorControl2(kukaUid,index,p.POSITION_CONTROL,targetPosition=value,force=maxForce,physicsClientId=physicsClient)
+		p.setJointMotorControl2(kukaUid,index,p.POSITION_CONTROL,targetPosition=value,positionGain=0.2,velocityGain=1.0,physicsClientId=physicsClient)
 
 	
 	state = p.getLinkState(kukaUid, kukaEndEffectorIndex)
-	pos = state[0]
-	orn = state[1]
-	euler = p.getEulerFromQuaternion(orn)
+	pos = state[4] # get position of center of mass in world cartesian position
+	orn = state[5] # get orientation of center of mass (in quaternion)
+	euler = p.getEulerFromQuaternion(orn) # convert quaternion to euler angles
 	
-	str_pos = "P:" + str(round(pos[0],2)) + "," + str(round(pos[1],2)) + "," + str(round(pos[2],2)) + ", O:" + str(round(euler[0],2)) + "," + str(round(euler[1],2)) + "," + str(round(euler[2],2))
+	str_pos = "(" + str(round(pos[0],2)) + "," + str(round(pos[1],2)) + "," + str(round(pos[2],2)) + "), (" + str(round(euler[0],2)) + "," + str(round(euler[1],2)) + "," + str(round(euler[2],2)) + ")"
 
-	p.removeUserDebugItem(idDebugText)
+	p.removeUserDebugItem(idEEText)
 
-	idDebugText = p.addUserDebugText(str_pos, [shift, 0, .1],
-				   textColor,
+	# Print position and orientation of kuka end effector link.
+	# textPosition is relative to position of end effector link (parentLinkIndex=kukaEndEffectorIndex)
+	idEEText = p.addUserDebugText(text=str_pos, textPosition=[shift, 0, .1],
+				   textColorRGB=textColor,
 				   parentObjectUniqueId=kukaUid,
 				   parentLinkIndex=kukaEndEffectorIndex)
+		
+	# calculate IK of EEF to get joint values
+	jointPoses = p.calculateInverseKinematics(kukaUid, kukaEndEffectorIndex, pos,
+                                                    orn, joint_lower, joint_upper, joint_range, initial_positions)
+				   
+	
+	# Print as debug the joint values
+	str_ik_pos = ""
+	for j in range(7):
+		str_ik_pos = str_ik_pos + " J" + str(j) + ":" + str(round(jointPoses[j],3))
+	
+	p.removeUserDebugItem(idEEIKText)
+	
+	# [0.0, -0.5, 0.0] is rely to the [0.0, 0.0, 0.0] of the world
+	idEEIKText = p.addUserDebugText(str_ik_pos, [-1.0, -0.5, 0.0],
+				   textColor, textSize=2.0,
+				   parentObjectUniqueId=kukaUid)
     
 	p.stepSimulation(physicsClientId=physicsClient) # let time to update the GUI
 
