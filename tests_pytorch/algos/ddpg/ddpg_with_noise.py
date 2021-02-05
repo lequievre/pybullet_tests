@@ -13,12 +13,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.distributions import Normal
+
 from tensorboardX import SummaryWriter
 
 '''
 Implementation of Deep Deterministic Policy Gradients (DDPG) with pytorch 
-riginal paper: https://arxiv.org/abs/1509.02971
+original paper: https://arxiv.org/abs/1509.02971
 Not the author's implementation !
 '''
 
@@ -52,6 +52,7 @@ parser.add_argument('--update_iteration', default=200, type=int)
 args = parser.parse_args()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 script_name = os.path.basename(__file__)
 env = gym.make(args.env_name)
 
@@ -123,7 +124,7 @@ class Actor(nn.Module):
         # tanh give a value between -1 and 1 (pendulum normal action is between -2.0 and 2.0).
         # max_action = 2.0
         # so forward action : tanh * max_action
-        x = self.max_action * torch.tanh(self.l3(x))  
+        x = self.max_action * torch.tanh(self.l3(x))  # x is an action value
         return x
 
 
@@ -138,9 +139,9 @@ class Critic(nn.Module):
 
     # x = state, u = action
     def forward(self, x, u):
-        x = F.relu(self.l1(torch.cat([x, u], 1))) # cat -> x
+        x = F.relu(self.l1(torch.cat([x, u], 1))) # concatenate tensors -> x (state) and u (action) 
         x = F.relu(self.l2(x))
-        x = self.l3(x) # x is the Q Value
+        x = self.l3(x) # x is the current Q estimate
         return x
 
 # Ornstein-Ulhenbeck Process
@@ -177,14 +178,15 @@ class DDPG(object):
     def __init__(self, state_dim, action_dim, max_action):
         self.actor = Actor(state_dim, action_dim, max_action).to(device)
         self.actor_target = Actor(state_dim, action_dim, max_action).to(device)
-        self.actor_target.load_state_dict(self.actor.state_dict())
-        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=1e-4)
+        self.actor_target.load_state_dict(self.actor.state_dict()) # load actor model’s parameter into actor_target
+        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=1e-4) # use Adam (Adaptive Momemt Estimation) 
 
         self.critic = Critic(state_dim, action_dim).to(device)
         self.critic_target = Critic(state_dim, action_dim).to(device)
-        self.critic_target.load_state_dict(self.critic.state_dict())
-        self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=1e-3)
+        self.critic_target.load_state_dict(self.critic.state_dict()) # load critic model’s parameter into critic_target
+        self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=1e-3) # use Adam (Adaptive Momemt Estimation)
         self.replay_buffer = Replay_buffer()
+
         self.writer = SummaryWriter(directory)
 
         self.num_critic_update_iteration = 0
@@ -215,7 +217,8 @@ class DDPG(object):
 
             # Compute critic loss
             critic_loss = F.mse_loss(current_Q, target_Q)
-            self.writer.add_scalar('Loss/critic_loss', critic_loss, global_step=self.num_critic_update_iteration)
+            #self.writer.add_scalar('Loss/critic_loss', critic_loss, global_step=self.num_critic_update_iteration)
+            
             # Optimize the critic
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
@@ -223,14 +226,14 @@ class DDPG(object):
 
             # Compute actor loss
             actor_loss = -self.critic(state, self.actor(state)).mean()
-            self.writer.add_scalar('Loss/actor_loss', actor_loss, global_step=self.num_actor_update_iteration)
+            #self.writer.add_scalar('Loss/actor_loss', actor_loss, global_step=self.num_actor_update_iteration)
 
             # Optimize the actor
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
             self.actor_optimizer.step()
 
-            # Update the frozen target models
+            # Update the frozen target models with a factor of (1.0 - tau)
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                 target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
 
@@ -270,7 +273,6 @@ def main():
                 nb_step+=1
                 env.render()
                 if done:
-#or t >= args.max_length_of_trajectory:
                     print("Ep_i \t{}, the ep_r is \t{:0.2f}, avg r is \t{:0.2f} the step is \t{}".format(i, ep_r, ep_r/nb_step, t))
                     ep_r = 0
                     break
@@ -284,26 +286,27 @@ def main():
             total_reward = 0
             step =0
             state = env.reset()
+            # Do infinite loop
             for t in count():
                 action = agent.select_action(state)
                 action = noise.get_action(action, t)
-                #action = (action + np.random.normal(0, args.exploration_noise, size=env.action_space.shape[0])).clip(
-                #    env.action_space.low, env.action_space.high)
 
                 next_state, reward, done, info = env.step(action)
-                if args.render and i >= args.render_interval : env.render()
                 agent.replay_buffer.push((state, next_state, action, reward, np.float(done)))
 
                 state = next_state
-                #print("t={}, done={}".format(t,done))
+                
                 if done:
                     break
+
                 step += 1
                 total_reward += reward
+
             total_step += step+1
+
             print("T Step:\t{} Epi: \t{} Nb:\t {} R avg: \t{:0.2f} T Reward: \t{:0.2f}".format(total_step, i, step, total_reward/step, total_reward))
+
             agent.update()
-           # "Total T: %d Episode Num: %d Episode T: %d Reward: %f
 
             if i % args.log_interval == 0:
                 agent.save()
