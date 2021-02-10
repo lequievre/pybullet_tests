@@ -71,3 +71,17 @@ python train_dqn_cartpole_v0.py
 python test_dqn_cartpole_v0.py
 
 
+How to use "tensorboard" :
+=========================
+
+-> Add the option 'tensorboard_logs' in the constructor :
+model = DDPG('MlpPolicy', env, action_noise=action_noise, verbose=1, tensorboard_log="./ddpg_pendulum_tensorboard/")
+
+-> create a directory named 'ddpg_pendulum_tensorboard' (for this example).
+
+-> launch this command into another terminal window (don't forget to activate the virtual env before !)
+tensorboard --logdir ./ddpg_pendulum_tensorboard --host localhost
+
+that command return an url : http://localhost:6006/
+(copy and paste this url in an internet browser)
+
