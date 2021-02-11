@@ -133,7 +133,18 @@ class TD3(OffPolicyAlgorithm) -> stable_baselines3/td3/td3.py
 +
 class DDPG(TD3) -> stable_baselines3/ddpg/ddpg.py
 
+(*) code of class BaseAlgorithm(ABC) :
 
+def _update_learning_rate(self, optimizers: Union[List[th.optim.Optimizer], th.optim.Optimizer]) -> None:
+        """
+        Update the optimizers learning rate using the current learning rate schedule
+        and the current progress remaining (from 1 to 0).
+
+        :param optimizers:
+            An optimizer or a list of optimizers.
+        """
+        # Log the current learning rate
+        logger.record("train/learning_rate", self.lr_schedule(self._current_progress_remaining))
 
 (*) Code of class OffPolicyAlgorithm(BaseAlgorithm) : 
 
