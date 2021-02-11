@@ -85,3 +85,36 @@ tensorboard --logdir ./ddpg_pendulum_tensorboard --host localhost
 that command return an url : http://localhost:6006/
 (copy and paste this url in an internet browser)
 
+
+evaluate_policy :
+================
+
+(*) example without 'return_episode_rewards' option :
+  mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=100)
+  
+(*) example with 'return_episode_rewards' option :
+ episode_rewards, episode_lengths = evaluate_policy(model, env, return_episode_rewards=True,n_eval_episodes=100)
+
+(*) infos :
+episode_rewards -> list of 'sum reward' of each episode  [sum_reward_episode1, sum_reward_episode2, ..., sum_reward_episodeN]
+episode_lengths -> list of 'length/nb steps' of each episode [nb_steps_episode1, nb_steps_episode2, ..., nb_steps_episodeN]
+
+mean_reward = np.mean(episode_rewards)  (mean of episode_rewards)
+std_reward = np.std(episode_rewards)    (standard deviation (écart type) of episode_rewards)
+
+( L'écart-type sert à mesurer la dispersion, ou l'étalement, d'un ensemble de valeurs autour de leur moyenne. 
+Plus l'écart-type est faible, plus la population est homogène. )
+
+
+(*) example of output with DDPG algo :
+
+-> model evaluation without learning
+mean_reward:-1215.51 +/- std_reward:236.55
+-> model evaluation with learning
+mean_reward:-605.88 +/- std_reward:100.04
+
+
+
+
+
+
