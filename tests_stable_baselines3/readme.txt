@@ -135,6 +135,16 @@ class DDPG(TD3) -> stable_baselines3/ddpg/ddpg.py
 
 (*) code of class BaseAlgorithm(ABC) :
 
+def _update_current_progress_remaining(self, num_timesteps: int, total_timesteps: int) -> None:
+        """
+        Compute current progress remaining (starts from 1 and ends to 0)
+
+        :param num_timesteps: current number of timesteps
+        :param total_timesteps:
+        """
+        self._current_progress_remaining = 1.0 - float(num_timesteps) / float(total_timesteps)
+
+
 def _update_learning_rate(self, optimizers: Union[List[th.optim.Optimizer], th.optim.Optimizer]) -> None:
         """
         Update the optimizers learning rate using the current learning rate schedule
@@ -277,8 +287,7 @@ total timesteps -> self.num_timesteps
 
 actor_loss -> np.mean(actor_losses)
 critic_loss -> np.mean(critic_losses)
-
-
-
+learning_rate -> 1.0 - float(num_timesteps) / float(total_timesteps)
+n_updates -> self._n_updates
 
 
