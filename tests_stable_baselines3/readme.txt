@@ -105,16 +105,16 @@ std_reward = np.std(episode_rewards)    (standard deviation (écart type) of epi
 ( L'écart-type sert à mesurer la dispersion, ou l'étalement, d'un ensemble de valeurs autour de leur moyenne. 
 Plus l'écart-type est faible, plus la population est homogène. )
 
-
 (*) example of output with DDPG algo :
-
 -> model evaluation without learning
 mean_reward:-1215.51 +/- std_reward:236.55
 -> model evaluation with learning
 mean_reward:-605.88 +/- std_reward:100.04
 
-
-
-
+(*) in case of Pendulum :
+Pendulum is wrapped by the TimeLimit wrapper !
+So step function returns true for done after 200 steps !
+So the nb steps by episode is 200 !
+So episode_lengths is a list of 200 values ! [200, 200, .... , 200]
 
 
