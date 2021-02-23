@@ -1,7 +1,7 @@
 from envs.franka_panda_env import pandaEnv
 import pybullet as p
 
-#physics_client_id = p.connect(p.DIRECT)
+# physics_client_id = p.connect(p.DIRECT)
 physics_client_id = p.connect(p.GUI)
 p.resetSimulation()
 
