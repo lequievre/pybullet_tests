@@ -77,7 +77,7 @@ class pandaEnv:
         #self._eu_lim = [[-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]]  # euler limit
 
         # effector index : i=11, name=panda_grasptarget_hand, type=JOINT FIXED
-        self.end_eff_idx = 11  
+        self.end_eff_idx = 8  
         
         self._num_dof = 7 # panda_joint(1..7)
 
@@ -132,6 +132,12 @@ class pandaEnv:
         self.list_lower_limits, self.list_upper_limits, self.list_ranges, self.list_rest_pos = self.get_joint_ranges()
 
 
+    def get_workspace(self):
+        return [i[:] for i in self._workspace_lim]
+
+    def set_workspace(self, ws):
+        self._workspace_lim = [i[:] for i in ws]
+
     def get_joint_ranges(self):
         list_lower_limits, list_upper_limits, list_joint_ranges, list_rest_poses = [], [], [], []
 
@@ -154,28 +160,47 @@ class pandaEnv:
         return list_lower_limits, list_upper_limits, list_joint_ranges, list_rest_poses
 
     def debug_gui(self):
+
         ws = self._workspace_lim
         p1 = [ws[0][0], ws[1][0], ws[2][0]]  # xmin,ymin,zmin
         p2 = [ws[0][1], ws[1][0], ws[2][0]]  # xmax,ymin,zmin
         p3 = [ws[0][1], ws[1][1], ws[2][0]]  # xmax,ymax,zmin
         p4 = [ws[0][0], ws[1][1], ws[2][0]]  # xmin,ymax,zmin
 
+        # draw lines of the wokspace limit
         # add a 3d line specified by a 3d starting point (from) and end point (to), a color [red,green,blue]
         p.addUserDebugLine(p1, p2, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
         p.addUserDebugLine(p2, p3, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
         p.addUserDebugLine(p3, p4, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
         p.addUserDebugLine(p4, p1, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
 
-        p.addUserDebugLine([0, 0, 0], [0.1, 0, 0], [1, 0, 0], parentObjectUniqueId=self.robot_id,
+        p1_zmax = [ws[0][0], ws[1][0], ws[2][1]]  # xmin,ymin,zmax
+        p2_zmax = [ws[0][1], ws[1][0], ws[2][1]]  # xmax,ymin,zmax
+        p3_zmax = [ws[0][1], ws[1][1], ws[2][1]]  # xmax,ymax,zmax
+        p4_zmax = [ws[0][0], ws[1][1], ws[2][1]]  # xmin,ymax,zmax
+
+        p.addUserDebugLine(p1_zmax, p2_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p2_zmax, p3_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p3_zmax, p4_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p4_zmax, p1_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+
+        p.addUserDebugLine(p1, p1_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p2, p2_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p3, p3_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p4, p4_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+
+        # draw 3d landmarks of the base of robot (index = -1) and the end effector (index = self.end_eff_idx)
+        size_line = 0.2
+        p.addUserDebugLine([0, 0, 0], [size_line, 0, 0], [1, 0, 0], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
                            parentLinkIndex=-1, physicsClientId=self._physics_client_id)
-        p.addUserDebugLine([0, 0, 0], [0, 0.1, 0], [0, 1, 0], parentObjectUniqueId=self.robot_id,
+        p.addUserDebugLine([0, 0, 0], [0, size_line, 0], [0, 1, 0], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
                            parentLinkIndex=-1, physicsClientId=self._physics_client_id)
-        p.addUserDebugLine([0, 0, 0], [0, 0, 0.1], [0, 0, 1], parentObjectUniqueId=self.robot_id,
+        p.addUserDebugLine([0, 0, 0], [0, 0, size_line], [0, 0, 1], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
                            parentLinkIndex=-1, physicsClientId=self._physics_client_id)
 
-        p.addUserDebugLine([0, 0, 0], [0.1, 0, 0], [1, 0, 0], parentObjectUniqueId=self.robot_id,
+        p.addUserDebugLine([0, 0, 0], [size_line, 0, 0], [1, 0, 0], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
                            parentLinkIndex=self.end_eff_idx, physicsClientId=self._physics_client_id)
-        p.addUserDebugLine([0, 0, 0], [0, 0.1, 0], [0, 1, 0], parentObjectUniqueId=self.robot_id,
+        p.addUserDebugLine([0, 0, 0], [0, size_line, 0], [0, 1, 0], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
                            parentLinkIndex=self.end_eff_idx, physicsClientId=self._physics_client_id)
-        p.addUserDebugLine([0, 0, 0], [0, 0, 0.1], [0, 0, 1], parentObjectUniqueId=self.robot_id,
+        p.addUserDebugLine([0, 0, 0], [0, 0, size_line], [0, 0, 1], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
                            parentLinkIndex=self.end_eff_idx, physicsClientId=self._physics_client_id)

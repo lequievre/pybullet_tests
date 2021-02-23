@@ -1,9 +1,13 @@
 from envs.franka_panda_env import pandaEnv
+from envs.world_env import WorldEnv
+
 import pybullet as p
 
 # physics_client_id = p.connect(p.DIRECT)
 physics_client_id = p.connect(p.GUI)
 p.resetSimulation()
+
+p.resetDebugVisualizerCamera(2.5, 90, -60, [0.52, -0.2, -0.33], physicsClientId=physics_client_id)
 
 # Set Gravity to the environment
 p.setGravity(0, 0, -9.81, physics_client_id)
@@ -18,8 +22,22 @@ print("lower limits =", robot.list_lower_limits)
 print("upper limits =", robot.list_upper_limits)
 print("ranges =", robot.list_ranges)
 print("rest pos =", robot.list_rest_pos)
- 
+
+world = WorldEnv(physics_client_id)
+print("world workspace limit = ", world.get_workspace())
+
+workspace_robot = robot.get_workspace()
+print("robot workspace limit (before table) = ", robot.get_workspace())
+
+print("table height = ", world.get_table_height())
+
+workspace_robot[2][0] = world.get_table_height()
+robot.set_workspace(workspace_robot)
+
+print("robot workspace limit (after table) = ", robot.get_workspace())
+
 robot.debug_gui()
+world.debug_gui()
 
 while True:
     

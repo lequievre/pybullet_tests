@@ -129,8 +129,42 @@ class WorldEnv:
 
         return obj_pose
 
+    def get_table_height(self):
+        return self._h_table
+
+    def get_workspace(self):
+        return [i[:] for i in self._ws_lim]
 
     def debug_gui(self):
+
+        ws = self._ws_lim
+        p1 = [ws[0][0], ws[1][0], ws[2][0]]  # xmin,ymin,zmin
+        p2 = [ws[0][1], ws[1][0], ws[2][0]]  # xmax,ymin,zmin
+        p3 = [ws[0][1], ws[1][1], ws[2][0]]  # xmax,ymax,zmin
+        p4 = [ws[0][0], ws[1][1], ws[2][0]]  # xmin,ymax,zmin
+
+        # draw lines of the wokspace limit
+        # add a 3d line specified by a 3d starting point (from) and end point (to), a color [red,green,blue]
+        p.addUserDebugLine(p1, p2, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p2, p3, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p3, p4, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p4, p1, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+
+        p1_zmax = [ws[0][0], ws[1][0], ws[2][1]]  # xmin,ymin,zmax
+        p2_zmax = [ws[0][1], ws[1][0], ws[2][1]]  # xmax,ymin,zmax
+        p3_zmax = [ws[0][1], ws[1][1], ws[2][1]]  # xmax,ymax,zmax
+        p4_zmax = [ws[0][0], ws[1][1], ws[2][1]]  # xmin,ymax,zmax
+
+        p.addUserDebugLine(p1_zmax, p2_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p2_zmax, p3_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p3_zmax, p4_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p4_zmax, p1_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+
+        p.addUserDebugLine(p1, p1_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p2, p2_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p3, p3_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(p4, p4_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+
         size_line = 0.1
         p.addUserDebugLine([0, 0, 0], [size_line, 0, 0], [1, 0, 0], parentObjectUniqueId=self.obj_id, physicsClientId=self._physics_client_id)
         p.addUserDebugLine([0, 0, 0], [0, size_line, 0], [0, 1, 0], parentObjectUniqueId=self.obj_id, physicsClientId=self._physics_client_id)
