@@ -8,10 +8,10 @@ p.resetSimulation()
 # Set Gravity to the environment
 p.setGravity(0, 0, -9.81, physics_client_id)
 
-# enable keyboard events
+# Enable keyboard events
 p.configureDebugVisualizer( p.COV_ENABLE_KEYBOARD_SHORTCUTS, 1 )
 
-# set num of joints
+# Set num of joints
 numControlledJoints = 7
 robot = pandaEnv(physics_client_id, joint_action_space=numControlledJoints)
 print("lower limits =", robot.list_lower_limits)
