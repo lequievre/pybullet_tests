@@ -39,6 +39,11 @@ print("robot workspace limit (after table) = ", robot.get_workspace())
 robot.debug_gui()
 world.debug_gui()
 
+#observation, observation_lim = robot.get_observation_with_end_effector()
+observation, observation_lim = robot.get_observation()
+print("observation = ", observation)
+print("observation lim = ", observation_lim)
+
 while True:
     
     p.configureDebugVisualizer(p.COV_ENABLE_SINGLE_STEP_RENDERING, physicsClientId=physics_client_id)

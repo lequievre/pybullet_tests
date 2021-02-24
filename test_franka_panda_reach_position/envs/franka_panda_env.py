@@ -62,19 +62,22 @@ class pandaEnv:
     ])
     
 
-    def __init__(self, physicsClientId, base_position=(0.0, 0, 0.625), joint_action_space=9, includeVelObs=True):
+    def __init__(self, physics_client_id, base_position=(0.0, 0, 0.625), joint_action_space=9, include_vel_into_obs=True):
 
-        self._physics_client_id = physicsClientId
+        self._physics_client_id = physics_client_id
         self._base_position = base_position # robot base position into the world when loaded URDF
 
-        self.joint_action_space = joint_action_space  # Nb joint to move = 9 (panda_joint(1..7), panda_finger_joint(1..2))
-        self._include_vel_obs = includeVelObs # include cartesian linear velocity of end effector into observation
+        # Nb joint to move = 9 (panda_joint(1..7), panda_finger_joint(1..2))
+        self.joint_action_space = joint_action_space 
+ 
+        self._include_vel_obs = include_vel_into_obs # include cartesian linear velocity of end effector into observation
 
         # workspace limit [[xmin,xmax], [ymin,ymax], [zmin,zmax]]
         self._workspace_lim = [[0.3, 0.65], [-0.3, 0.3], [0.65, 1.5]]
 
-        # rotation effector limit [[xmin,xmax], [ymin,ymax], [zmin,zmax]]
-        #self._eu_lim = [[-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]]  # euler limit
+        # Cartesian rotation of end effector
+        # Euler limit = [[rot_xmin,rot_xmax], [rot_ymin,rot_ymax], [rot_zmin,rot_zmax]]
+        self._end_eff_euler_lim = [[-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]]  # euler limit
 
         # effector index : i=11, name=panda_grasptarget_hand, type=JOINT FIXED
         self.end_eff_idx = 8  
@@ -158,6 +161,90 @@ class pandaEnv:
             list_rest_poses.append(a_rest_pose)
 
         return list_lower_limits, list_upper_limits, list_joint_ranges, list_rest_poses
+
+    def get_observation(self):
+        # Create observation state
+        observation = []
+        observation_lim = []
+
+        # ------------------------ #
+        # --- Joint positions  --- #
+        # ------------------------ #
+
+        list_joint_states = p.getJointStates(self.robot_id, self._joint_name_to_index.values(), physicsClientId=self._physics_client_id)
+
+        # joint_state[0] -> The position value of this joint
+        list_joint_positions = [joint_state[0] for joint_state in list_joint_states]
+
+        observation.extend(list(list_joint_positions))
+
+        observation_lim.extend([[self.list_lower_limits[i], self.list_upper_limits[i]] for i in range(0, len(self._joint_name_to_index.values()))])
+        
+        return observation, observation_lim
+
+    def get_observation_with_end_effector(self):
+        # Create observation state
+        observation = []
+        observation_lim = []
+
+        # Get state of the end-effector link
+        state = p.getLinkState(self.robot_id, self.end_eff_idx, computeLinkVelocity=1,
+                               computeForwardKinematics=1, physicsClientId=self._physics_client_id)
+
+        # -------------------------------------- #
+        # --- End Effector Cartesian 6D pose --- #
+        # -------------------------------------- #
+        pos = state[0] # Position of end effector
+        orn = state[1] # Orientation of end effector
+
+        observation.extend(list(pos))
+        observation_lim.extend(list(self._workspace_lim))
+        
+        # cartesian orientation of end effector (euler angles)
+        end_eff_euler = p.getEulerFromQuaternion(orn)
+        observation.extend(list(end_eff_euler))  # euler roll, pitch, yaw
+        observation_lim.extend(self._end_eff_euler_lim)  # euler limits
+        
+        # ---------------------------------------------- #
+        # --- End Effector Cartesian linear velocity --- #
+        # ---------------------------------------------- #
+        if self._include_vel_obs:
+            # standardize by subtracting the mean and dividing by the std
+
+            vel_std = [0.04, 0.07, 0.03]
+            vel_mean = [0.0, 0.01, 0.0]
+
+            # state[6] -> worldLinkLinearVelocity : list of 3 floats, Cartesian world velocity. 
+            # Only returned if computeLinkVelocity non-zero.
+            vel_l = np.subtract(state[6], vel_mean)
+            vel_l = np.divide(vel_l, vel_std)
+
+            observation.extend(list(vel_l))
+            observation_lim.extend([[-1, 1], [-1, 1], [-1, 1]])
+        
+        # ------------------------ #
+        # --- Joint positions  --- #
+        # ------------------------ #
+
+        list_joint_states = p.getJointStates(self.robot_id, self._joint_name_to_index.values(), physicsClientId=self._physics_client_id)
+
+        # joint_state[0] -> The position value of this joint
+        list_joint_positions = [joint_state[0] for joint_state in list_joint_states]
+
+        observation.extend(list(list_joint_positions))
+
+        observation_lim.extend([[self.list_lower_limits[i], self.list_upper_limits[i]] for i in range(0, len(self._joint_name_to_index.values()))])
+        
+        return observation, observation_lim
+
+    def get_action_dim(self):
+        return self.joint_action_space
+
+    def get_observation_with_end_effector_dim(self):
+        return len(self.get_observation_with_end_effector())
+
+    def get_observation_dim(self):
+        return len(self.get_observation())
 
     def debug_gui(self):
 
