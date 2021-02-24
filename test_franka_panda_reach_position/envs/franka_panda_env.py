@@ -62,7 +62,7 @@ class pandaEnv:
     ])
     
 
-    def __init__(self, physics_client_id, base_position=(0.0, 0, 0.625), joint_action_space=9, include_vel_into_obs=True):
+    def __init__(self, physics_client_id, base_position=(0.0, 0, 0.625), joint_action_space=7, include_vel_into_obs=True):
 
         self._physics_client_id = physics_client_id
         self._base_position = base_position # robot base position into the world when loaded URDF
@@ -79,8 +79,8 @@ class pandaEnv:
         # Euler limit = [[rot_xmin,rot_xmax], [rot_ymin,rot_ymax], [rot_zmin,rot_zmax]]
         self._end_eff_euler_lim = [[-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]]  # euler limit
 
-        # effector index : i=11, name=panda_grasptarget_hand, type=JOINT FIXED
-        self.end_eff_idx = 8  
+        # effector index : i=7, name=panda_joint8, type=JOINT FIXED, lower=0.0, upper=-1.0, effort=0.0, velocity=0.0
+        self.end_eff_idx = 7 
         
         self._num_dof = 7 # panda_joint(1..7)
 
@@ -99,13 +99,13 @@ class pandaEnv:
    
     def reset(self):
 
-        # pybullet data path -> /home_directory/.local/lib/python3.8/site-packages/pybullet_data
+        # pybullet data path -> /home/laurent/test_rl/ve_pybullet/lib/python3.5/site-packages/pybullet_data
         pybullet_data_path = pybullet_data.getDataPath()
         print("=> data path -> {0}".format(pybullet_data_path))
 
         # Add a search data path
         p.setAdditionalSearchPath(pybullet_data_path)
-        # pybullet data path -> /home_directory/.local/lib/python3.8/site-packages/pybullet_data
+        # pybullet data path -> /home/laurent/test_rl/ve_pybullet/lib/python3.5/site-packages/pybullet_data
         # a subdirectory franka_panda contain the urdf of panda (panda.urdf).
 
         # Load robot model
