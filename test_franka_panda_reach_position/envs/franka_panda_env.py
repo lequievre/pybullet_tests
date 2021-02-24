@@ -67,7 +67,7 @@ class pandaEnv:
         self._physics_client_id = physics_client_id
         self._base_position = base_position # robot base position into the world when loaded URDF
 
-        # Nb joint to move = 9 (panda_joint(1..7), panda_finger_joint(1..2))
+        # Nb joint to move = 7 (panda_joint(1..7)
         self.joint_action_space = joint_action_space 
  
         self._include_vel_obs = include_vel_into_obs # include cartesian linear velocity of end effector into observation
