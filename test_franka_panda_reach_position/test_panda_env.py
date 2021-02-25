@@ -15,9 +15,7 @@ p.setGravity(0, 0, -9.81, physics_client_id)
 # Enable keyboard events
 p.configureDebugVisualizer( p.COV_ENABLE_KEYBOARD_SHORTCUTS, 1 )
 
-# Set num of joints
-numControlledJoints = 7
-robot = pandaEnv(physics_client_id, joint_action_space=numControlledJoints)
+robot = pandaEnv(physics_client_id)
 print("lower limits =", robot.list_lower_limits)
 print("upper limits =", robot.list_upper_limits)
 print("ranges =", robot.list_ranges)
@@ -39,10 +37,14 @@ print("robot workspace limit (after table) = ", robot.get_workspace())
 robot.debug_gui()
 world.debug_gui()
 
-#observation, observation_lim = robot.get_observation_with_end_effector()
-observation, observation_lim = robot.get_observation()
-print("observation = ", observation)
-print("observation lim = ", observation_lim)
+robot_observation, robot_observation_lim = robot.get_observation()
+print("robot observation = ", robot_observation)
+print("robot observation lim = ", robot_observation_lim)
+
+world_observation, world_observation_lim = world.get_observation()
+print("world observation = ", world_observation)
+print("world observation lim = ", world_observation_lim)
+
 
 while True:
     

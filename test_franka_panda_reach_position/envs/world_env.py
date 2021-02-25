@@ -135,6 +135,26 @@ class WorldEnv:
     def get_workspace(self):
         return [i[:] for i in self._ws_lim]
 
+    def get_observation(self):
+        observation = []
+        observation_lim = []
+
+        # get object position
+        obj_pos, obj_orn = p.getBasePositionAndOrientation(self.obj_id, physicsClientId=self._physics_client_id)
+        observation.extend(list(obj_pos))
+        observation_lim.extend(self._ws_lim)
+
+        # object orientation (converted to euler angles)
+        obj_euler = p.getEulerFromQuaternion(obj_orn)  # roll, pitch, yaw
+        observation.extend(list(obj_euler))
+        observation_lim.extend([[-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]])
+
+        return observation, observation_lim
+
+    def get_observation_dim(self):
+        obs, _ = self.get_observation()
+        return len(obs)
+
     def debug_gui(self):
 
         ws = self._ws_lim
