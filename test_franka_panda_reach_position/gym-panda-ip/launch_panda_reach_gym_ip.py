@@ -50,6 +50,7 @@ if __name__ == '__main__':
 	high =  [1. 1. 1. 1. 1. 1. 1.]
 
     Actions are normalized between -1 to 1 (7 joint values)
+    This fixed range of [-1,1] helps in stabilising the training in the neural networks
     """
   
     print('observation space -> ')
@@ -89,6 +90,19 @@ if __name__ == '__main__':
     [0.3, 0.65], [-0.3, 0.3], [0.65, 1.5], [-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]
     
     """
+
+    observation_scaled = env.reset()
+    print('observation scaled after reset = ', observation_scaled)
+
+    """
+    observation scaled after reset =  [-6.07307340e-01 -5.97678789e-02 -1.91250055e-02  9.33127154e-01
+	 -5.70407134e-02 -2.69678429e-01  0.00000000e+00 -2.94663320e-01
+	  0.00000000e+00 -6.55207594e-01 -1.01108830e-01  6.77818663e-02
+	  3.37029433e-01  2.23517422e-08  2.23517422e-08 -2.23669335e-01
+	  4.71404502e-02 -5.33333352e-01  0.00000000e+00  0.00000000e+00
+	  2.49999993e-01]
+    """
+
 
     print("Enter to quit into the graphic window !")
     while True:

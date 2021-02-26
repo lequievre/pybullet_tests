@@ -24,6 +24,8 @@ import numpy as np
 from gym_panda_ip.envs.franka_panda_env import PandaEnv
 from gym_panda_ip.envs.world_env import WorldEnv
 
+from gym_panda_ip.envs.utils import scale_gym_data
+
 class PandaReachGymEnv(gym.Env):
 
     def __init__(self,
@@ -110,7 +112,11 @@ class PandaReachGymEnv(gym.Env):
 
 
     def reset(self):
-        print("PandaReachGymEnv  reset !")
+        #self.reset_simulation() TO DO
+
+        obs, _ = self.get_extended_observation()
+        scaled_obs = scale_gym_data(self.observation_space, obs)
+        return scaled_obs
       
 
     def seed(self, seed=None):
@@ -120,7 +126,16 @@ class PandaReachGymEnv(gym.Env):
         return [seed]
 
     def step(self, action):
-        print("PandaReachGymEnv  step !")
+        # apply action on the robot
+        #self.apply_action(action) TO DO
+
+        obs, _ = self.get_extended_observation()
+        scaled_obs = scale_gym_data(self.observation_space, obs)
+
+        #done = self._termination() TO DO
+        #reward = self._compute_reward() TO DO
+
+        #return scaled_obs, np.array(reward), np.array(done), {} TO DO
 
     def render(self, mode="rgb_array"):
         print("PandaReachGymEnv  render !")
