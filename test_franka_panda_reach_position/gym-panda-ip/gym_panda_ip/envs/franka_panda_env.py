@@ -34,6 +34,18 @@ i=11, name=panda_grasptarget_hand, type=JOINT FIXED, lower=0.0, upper=-1.0, effo
             <origin rpy="0 0 0" xyz="0 0 0.07"/>
 </joint>
 
+limits :
+('panda_joint1', 0)   -2.9671   2.9671
+('panda_joint2', 1)   -1.8326   1.8326
+('panda_joint3', 2)   -2.9671   2.9671
+('panda_joint4', 3)   -3.1416   0.0
+('panda_joint5', 4)   -2.9671   2.9671
+('panda_joint6', 5)   -0.0873   3.8223
+('panda_joint7', 6)   -2.9671   2.9671
+('panda_finger_joint1', 9)   0.0   0.04
+('panda_finger_joint2', 10)   0.0   0.04
+
+
 """
 
 import pybullet as p
@@ -78,9 +90,7 @@ class PandaEnv:
         self._end_eff_euler_lim = [[-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]]  # euler limit
 
         # effector index : i=7, name=panda_joint8, type=JOINT FIXED, lower=0.0, upper=-1.0, effort=0.0, velocity=0.0
-        self.end_eff_idx = 7 
-        
-        self._num_dof = 7 # panda_joint(1..7)
+        self.end_eff_idx = 7
 
         # Pybullet id of robot franka panda loaded
         self.robot_id = None
@@ -99,7 +109,7 @@ class PandaEnv:
 
         # pybullet data path -> /home/laurent/test_rl/ve_pybullet/lib/python3.5/site-packages/pybullet_data
         pybullet_data_path = pybullet_data.getDataPath()
-        print("=> data path -> {0}".format(pybullet_data_path))
+        #print("=> data path -> {0}".format(pybullet_data_path))
 
         # Add a search data path
         p.setAdditionalSearchPath(pybullet_data_path)
@@ -148,6 +158,8 @@ class PandaEnv:
             joint_info = p.getJointInfo(self.robot_id, joint_index, physicsClientId=self._physics_client_id)
 
             a_lower_limit, an_upper_limit = joint_info[8:10]
+            #print(item, ' ', a_lower_limit, ' ' , an_upper_limit)
+            
             a_range = an_upper_limit - a_lower_limit
 
             # For simplicity, assume resting state = initial position

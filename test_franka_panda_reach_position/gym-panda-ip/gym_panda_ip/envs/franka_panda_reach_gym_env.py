@@ -19,6 +19,7 @@ from gym import spaces
 from gym.utils import seeding
 
 import pybullet as p
+import numpy as np
 
 from gym_panda_ip.envs.franka_panda_env import PandaEnv
 from gym_panda_ip.envs.world_env import WorldEnv
@@ -44,6 +45,9 @@ class PandaReachGymEnv(gym.Env):
         else:
             self._physics_client_id = p.connect(p.DIRECT)
 
+
+        self._observation = []
+
         # load robot
         self._robot = PandaEnv(self._physics_client_id)
 
@@ -55,9 +59,54 @@ class PandaReachGymEnv(gym.Env):
         # limit robot workspace to table plane
         workspace = self._robot.get_workspace()
         workspace[2][0] = self._world.get_table_height()
+        #print("table height = ", self._world.get_table_height())
         self._robot.set_workspace(workspace)
 
+        # Define gym spaces
+        self.observation_space, self.action_space = self.create_gym_spaces()
+
         self.seed()
+
+
+    def create_gym_spaces(self):
+        observation, observation_lim = self.get_extended_observation()
+
+        observation_low = []
+        observation_high = []
+
+        for element in observation_lim:
+            #print(element)
+            observation_low.extend([element[0]])
+            observation_high.extend([element[1]])
+
+        # Configure the observation space
+        observation_space = spaces.Box(np.array(observation_low), np.array(observation_high), dtype='float32')
+
+        # Configure action space
+        self.action_dim = self._robot.get_action_dim()
+        action_bound = 1
+        action_high = np.array([action_bound] * self.action_dim)
+        action_space = spaces.Box(-action_high, action_high, dtype='float32')
+
+        return observation_space, action_space
+
+
+    def get_extended_observation(self):
+        self._observation = []
+        observation_lim = []
+
+        # ----------------------------------- #
+        # --- Robot and world observation --- #
+        # ----------------------------------- #
+        robot_observation, robot_observation_lim = self._robot.get_observation()
+        world_observation, world_observation_lim = self._world.get_observation()
+
+        self._observation.extend(list(robot_observation))
+        self._observation.extend(list(world_observation))
+        observation_lim.extend(robot_observation_lim)
+        observation_lim.extend(world_observation_lim)
+
+        return np.array(self._observation).ravel(), observation_lim
 
 
     def reset(self):

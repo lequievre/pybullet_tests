@@ -60,7 +60,7 @@ class WorldEnv:
 
         # pybullet data path -> /home_directory/.local/lib/python3.8/site-packages/pybullet_data
         pybullet_data_path = pybullet_data.getDataPath()
-        print("=> data path -> {0}".format(pybullet_data_path))
+        #print("=> data path -> {0}".format(pybullet_data_path))
 
         # Add a search data path
         p.setAdditionalSearchPath(pybullet_data_path)
@@ -76,7 +76,9 @@ class WorldEnv:
         self._h_table = table_info[5][2] + table_info[3][2]/2
 
         # set ws limit on z according to table height
+        #print('world limit before table = ', self._ws_lim)
         self._ws_lim[2][:] = [self._h_table, self._h_table + 0.3]
+        #print('world limit = ', self._ws_lim)
 
         self.load_object(self._obj_name)
 
