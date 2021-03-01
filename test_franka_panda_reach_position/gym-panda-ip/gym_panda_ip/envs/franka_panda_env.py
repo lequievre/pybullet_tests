@@ -217,6 +217,26 @@ class PandaEnv:
         obs, _ = self.get_observation()
         return len(obs)
 
+    def apply_action(self, action):
+
+        # --------------------- #
+        # --- Joint control --- #
+        # --------------------- #
+
+        assert len(action) == self.joint_action_space, ('number of motor commands differs from number of motor to control', len(action))
+
+        joint_idxs = tuple(self._joint_name_to_index.values())
+        for i, val in enumerate(action):
+            motor = joint_idxs[i]
+            new_motor_pos = min(self.list_upper_limits[i], max(self.list_lower_limits[i], val))
+
+            p.setJointMotorControl2(self.robot_id,
+                                    motor,
+                                    p.POSITION_CONTROL,
+                                    targetPosition=new_motor_pos,
+                                    positionGain=0.5, velocityGain=1.0,
+                                    physicsClientId=self._physics_client_id)
+
     def debug_gui(self):
 
         ws = self._workspace_lim

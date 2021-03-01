@@ -67,6 +67,18 @@ class PandaReachGymEnv(gym.Env):
         # Define gym spaces
         self.observation_space, self.action_space = self.create_gym_spaces()
 
+        self.terminated = 0
+
+        self._target_dist_min = 0.03
+
+        self._max_steps = max_steps
+
+        self._env_step_counter = 0
+
+        self._action_repeat = 1
+
+        self._timeStep = 1. / 240.
+
         self.seed()
 
 
@@ -112,12 +124,41 @@ class PandaReachGymEnv(gym.Env):
 
 
     def reset(self):
-        #self.reset_simulation() TO DO
+        self.reset_simulation()
 
         obs, _ = self.get_extended_observation()
         scaled_obs = scale_gym_data(self.observation_space, obs)
         return scaled_obs
-      
+
+    def reset_simulation(self):
+        self.terminated = 0
+        self._env_step_counter = 0
+
+        # --- reset simulation --- #
+        p.resetSimulation(physicsClientId=self._physics_client_id)
+        p.setPhysicsEngineParameter(numSolverIterations=150, physicsClientId=self._physics_client_id)
+        p.setTimeStep(self._timeStep, physicsClientId=self._physics_client_id)
+        
+        p.setGravity(0, 0, -9.8, physicsClientId=self._physics_client_id)
+
+        # --- reset robot --- #
+        self._robot.reset()
+
+        # Let the world run for a bit
+        for _ in range(100):
+            p.stepSimulation(physicsClientId=self._physics_client_id)
+
+        # --- reset world --- #
+        self._world.reset()
+
+        # Let the world run for a bit
+        for _ in range(100):
+            p.stepSimulation(physicsClientId=self._physics_client_id)
+
+        # --- draw some reference frames in the simulation for debugging --- #
+        self._robot.debug_gui()
+        self._world.debug_gui()
+        p.stepSimulation(physicsClientId=self._physics_client_id)
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -127,15 +168,15 @@ class PandaReachGymEnv(gym.Env):
 
     def step(self, action):
         # apply action on the robot
-        #self.apply_action(action) TO DO
+        self.apply_action(action)
 
-        obs, _ = self.get_extended_observation()
-        scaled_obs = scale_gym_data(self.observation_space, obs)
+        observation, _ = self.get_extended_observation()
+        scaled_obs = scale_gym_data(self.observation_space, observation)
 
-        #done = self._termination() TO DO
-        #reward = self._compute_reward() TO DO
+        done = self._termination()
+        reward = self._compute_reward()
 
-        #return scaled_obs, np.array(reward), np.array(done), {} TO DO
+        return scaled_obs, np.array(reward), np.array(done), {}
 
     def render(self, mode="rgb_array"):
         print("PandaReachGymEnv  render !")
@@ -143,3 +184,62 @@ class PandaReachGymEnv(gym.Env):
     def close(self):
         p.disconnect()
 
+    
+    def _termination(self):
+        robot_observation, _ = self._robot.get_observation()
+        world_observation, _ = self._world.get_observation()
+        d = goal_distance(np.array(robot_observation[:3]), np.array(world_observation[:3]))
+
+        if d <= self._target_dist_min:
+            self.terminated = 1
+            print('------------->>> success!')
+            print('final reward')
+            print(self._compute_reward())
+
+            return np.float32(1.0)
+
+        if self.terminated or self._env_step_counter > self._max_steps:
+            return np.float32(1.0)
+
+        return np.float32(0.0)
+
+
+    def _compute_reward(self):
+        robot_observation, _ = self._robot.get_observation()
+        world_observation, _ = self._world.get_observation()
+
+        d = goal_distance(np.array(robot_observation[:3]), np.array(world_observation[:3]))
+
+        reward = -d
+        if d <= self._target_dist_min:
+            reward = np.float32(1000.0) + (100 - d*80)
+
+        return reward
+
+""" TO DO
+    def apply_action(self, action):
+        # process action and send it to the robot
+
+        action = scale_gym_data(self.action_space, np.array(action))
+
+        
+        robot_obs, _ = self._robot.get_observation()
+        action *= 0.05
+
+        n_tot_joints = len(self._robot._joint_name_to_ids.items())  # arm  + fingers
+        n_joints_to_control = self._robot.get_action_dim()  # only arm
+
+        new_action = np.add(robot_obs[-n_tot_joints: -(n_tot_joints - n_joints_to_control)], action)
+
+        # -------------------------- #
+        # --- send pose to robot --- #
+        # -------------------------- #
+        self._robot.apply_action(new_action)
+        p.stepSimulation(physicsClientId=self._physics_client_id)
+        time.sleep(self._timeStep)
+
+        if self._termination():
+             break
+
+        self._env_step_counter += 1
+"""
