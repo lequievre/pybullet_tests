@@ -12,26 +12,10 @@ import gym
 import gym_panda_ip
 import pybullet as p
 
-def main():
-    env = gym.make('panda-ip-reach-v0')
-    observation = env.reset()
-    
-    for i_episode in range(20):
-        observation = env.reset()
-        for t in range(100):
-            env.render()
-            print(observation)
-            action = env.action_space.sample()
-            print("action = {0}".format(action))
-            observation, reward, done, info = env.step(action)
-            if done:
-                print("Episode finished after {} timesteps".format(t+1))
-                break
-    env.close()
-    
+import time
 
 if __name__ == '__main__':
-    #main()
+    
     
     env = gym.make('panda-ip-reach-v0')
     print('action space -> ')
@@ -91,8 +75,16 @@ if __name__ == '__main__':
     
     """
 
+    
     observation_scaled = env.reset()
     print('observation scaled after reset = ', observation_scaled)
+
+    # print robot observation
+    observation, _ = env._robot.get_observation()
+    list_items = list(env._robot._joint_name_to_index.items())
+    for i in range(len(list_items)):
+       print(list_items[i],"->",observation[6+i])
+    
 
     """
     observation scaled after reset =  [-6.07307340e-01 -5.97678789e-02 -1.91250055e-02  9.33127154e-01
@@ -103,6 +95,8 @@ if __name__ == '__main__':
 	  2.49999993e-01]
     """
 
+    timestep = 1./240.
+    physics_client_id = env._physics_client_id
 
     print("Enter to quit into the graphic window !")
     while True:
@@ -113,6 +107,36 @@ if __name__ == '__main__':
         # 'Enter' event = 65309, if so .. break the loop
         if 65309 in keys:
             break
+
+        if 97 in keys: # (with letter 'a' = 97)
+            env.apply_action([0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        elif 98 in keys: # (with letter 'b' = 98)
+            env.apply_action([0.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0])
+        elif 99 in keys: # (with letter 'c' = 99)
+            env.apply_action([0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.0])
+        elif 100 in keys: # (with letter 'd' = 100)
+            env.apply_action([0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0])
+        elif 101 in keys: # (with letter 'e' = 101)
+            env.apply_action([0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0])
+        elif 102 in keys: # (with letter 'f' = 102)
+            env.apply_action([0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0])
+        elif 103 in keys: # (with letter 'g' = 103)
+            env.apply_action([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2])
+        elif keys.get(105): # (with letter 'i' = 105)
+            # print robot observation
+            observation, _ = env.get_extended_observation()
+            list_items = list(env._robot._joint_name_to_index.items())
+            for i in range(len(list_items)):
+               print(list_items[i],"->",observation[6+i])
+
+            # Let the world run for a bit
+            for _ in range(100):
+               p.stepSimulation(physicsClientId=physics_client_id )
+            
+        # let the simulation to redraw	   
+        p.stepSimulation(physicsClientId=physics_client_id )
+        #time.sleep(timestep)
+            
 
     p.disconnect()
 
