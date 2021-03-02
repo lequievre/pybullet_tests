@@ -25,6 +25,7 @@ sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
 
 sudo apt install python3.9
+sudo apt install python3.9-dev
 sudo apt install python3.9-venv
 
 
@@ -290,4 +291,14 @@ critic_loss -> np.mean(critic_losses)
 learning_rate -> 1.0 - float(num_timesteps) / float(total_timesteps)
 n_updates -> self._n_updates
 
+
+
+-> stable baselines3 with gym and pybullet installation :
+virtualenv -p /usr/bin/python3.9 ve_stable_baselines3
+
+source ve_stable_baselines3/bin/activate
+pip install gym
+pip install pybullet
+pip install stable-baslines3
+pip install tensorboard
 
