@@ -24,7 +24,9 @@ import numpy as np
 from gym_panda_ip.envs.franka_panda_env import PandaEnv
 from gym_panda_ip.envs.world_env import WorldEnv
 
-from gym_panda_ip.envs.utils import scale_gym_data
+from gym_panda_ip.envs.utils import scale_gym_data, goal_distance
+
+import time
 
 class PandaReachGymEnv(gym.Env):
 
@@ -179,7 +181,42 @@ class PandaReachGymEnv(gym.Env):
         return scaled_obs, np.array(reward), np.array(done), {}
 
     def render(self, mode="rgb_array"):
-        print("PandaReachGymEnv  render !")
+        if mode != "rgb_array":
+            return np.array([])
+
+        base_pos, _ = p.getBasePositionAndOrientation(self._robot.robot_id,
+                                                            physicsClientId=self._physics_client_id)
+
+        cam_dist = 1.3
+        cam_yaw = 180
+        cam_pitch = -40
+        RENDER_HEIGHT = 720
+        RENDER_WIDTH = 960
+
+        view_matrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=base_pos,
+                                                                distance=cam_dist,
+                                                                yaw=cam_yaw,
+                                                                pitch=cam_pitch,
+                                                                roll=0,
+                                                                upAxisIndex=2,
+                                                                physicsClientId=self._physics_client_id)
+
+        proj_matrix = p.computeProjectionMatrixFOV(fov=60, aspect=float(RENDER_WIDTH) / RENDER_HEIGHT,
+                                                         nearVal=0.1, farVal=100.0,
+                                                         physicsClientId=self._physics_client_id)
+
+        (_, _, px, _, _) = p.getCameraImage(width=RENDER_WIDTH, height=RENDER_HEIGHT,
+                                                  viewMatrix=view_matrix,
+                                                  projectionMatrix=proj_matrix,
+                                                  renderer=p.ER_BULLET_HARDWARE_OPENGL,
+                                                  physicsClientId=self._physics_client_id)
+        # renderer=self._p.ER_TINY_RENDERER)
+
+        rgb_array = np.array(px, dtype=np.uint8)
+        rgb_array = np.reshape(rgb_array, (RENDER_HEIGHT, RENDER_WIDTH, 4))
+
+        rgb_array = rgb_array[:, :, :3]
+        return rgb_array
 
     def close(self):
         p.disconnect()
@@ -216,20 +253,21 @@ class PandaReachGymEnv(gym.Env):
 
         return reward
 
-""" TO DO
+
     def apply_action(self, action):
         # process action and send it to the robot
 
         action = scale_gym_data(self.action_space, np.array(action))
 
         
-        robot_obs, _ = self._robot.get_observation()
+        robot_observation, _ = self._robot.get_observation()
         action *= 0.05
 
-        n_tot_joints = len(self._robot._joint_name_to_ids.items())  # arm  + fingers
-        n_joints_to_control = self._robot.get_action_dim()  # only arm
+        nb_total_joints = len(self._robot._joint_name_to_index.items())  # arm  + fingers
+        nb_joints_to_control = self._robot.get_action_dim()  # only arm
 
-        new_action = np.add(robot_obs[-n_tot_joints: -(n_tot_joints - n_joints_to_control)], action)
+        # -1 is the index of the last element of an observation
+        new_action = np.add(robot_observation[-nb_total_joints: -(nb_total_joints - nb_joints_to_control)], action)
 
         # -------------------------- #
         # --- send pose to robot --- #
@@ -238,8 +276,5 @@ class PandaReachGymEnv(gym.Env):
         p.stepSimulation(physicsClientId=self._physics_client_id)
         time.sleep(self._timeStep)
 
-        if self._termination():
-             break
-
         self._env_step_counter += 1
-"""
+

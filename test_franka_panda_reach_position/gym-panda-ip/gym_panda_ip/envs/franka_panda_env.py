@@ -129,6 +129,8 @@ class PandaEnv:
             joint_name = item[0]
             joint_index = item[1]
 
+            #print("robot reset {} : {} = {}".format(joint_index,joint_name,self._joint_initial_position[joint_name]))
+
             p.resetJointState(self.robot_id, joint_index, self._joint_initial_position[joint_name], physicsClientId=self._physics_client_id)
 
             p.setJointMotorControl2(self.robot_id, joint_index, p.POSITION_CONTROL,
@@ -226,6 +228,7 @@ class PandaEnv:
         assert len(action) == self.joint_action_space, ('number of motor commands differs from number of motor to control', len(action))
 
         joint_idxs = tuple(self._joint_name_to_index.values())
+
         for i, val in enumerate(action):
             motor = joint_idxs[i]
             new_motor_pos = min(self.list_upper_limits[i], max(self.list_lower_limits[i], val))
