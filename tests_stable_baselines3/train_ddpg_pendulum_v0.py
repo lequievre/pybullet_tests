@@ -37,3 +37,8 @@ print(f"mean_reward:{mean_reward_before:.2f} +/- std_reward:{std_reward_before:.
 print("-> model evaluation with learning")
 print(f"mean_reward:{mean_reward_after:.2f} +/- std_reward:{std_reward_after:.2f}")
 
+
+list_per_episode_rewards, per_episode_lengths = evaluate_policy(model, env, return_episode_rewards=True,n_eval_episodes=100)
+print(list_per_episode_rewards)
+print(per_episode_lengths)
+
