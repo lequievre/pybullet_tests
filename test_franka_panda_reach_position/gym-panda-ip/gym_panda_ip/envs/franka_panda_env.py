@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Laurent LEQUIEVRE
 Research Engineer, CNRS (France)
@@ -76,6 +74,8 @@ class PandaEnv:
 
     def __init__(self, physics_client_id, base_position=(0.0, 0, 0.625)):
 
+        #print("Start PandaEnv  init !")
+
         self._physics_client_id = physics_client_id
         self._base_position = base_position # robot base position into the world when loaded URDF
 
@@ -100,6 +100,8 @@ class PandaEnv:
 
         # load robot from URDF
         self.reset()
+
+        #print("End PandaEnv  init !")
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)

@@ -37,7 +37,7 @@ class PandaReachGymEnv(gym.Env):
                  max_steps=1000,
                  obj_pose_rnd_std=0):
 
-        print("PandaReachGymEnv  init !")
+        print("Start PandaReachGymEnv  init !")
         self._renders = renders
 
         if self._renders:
@@ -83,6 +83,8 @@ class PandaReachGymEnv(gym.Env):
 
         self.seed()
 
+        print("End PandaReachGymEnv  init !")
+
 
     def create_gym_spaces(self):
         observation, observation_lim = self.get_extended_observation()
@@ -95,8 +97,9 @@ class PandaReachGymEnv(gym.Env):
             observation_low.extend([element[0]])
             observation_high.extend([element[1]])
 
+        #print('create_gym_spaces -> ', len(observation_low), len(observation_high))
         # Configure the observation space
-        observation_space = spaces.Box(np.array(observation_low), np.array(observation_high), dtype='float32')
+        observation_space = spaces.Box(np.array(observation_low), np.array(observation_high),dtype=np.float32)
 
         # Configure action space
         self.action_dim = self._robot.get_action_dim()
@@ -129,8 +132,11 @@ class PandaReachGymEnv(gym.Env):
         self.reset_simulation()
 
         obs, _ = self.get_extended_observation()
-        scaled_obs = scale_gym_data(self.observation_space, obs)
-        return scaled_obs
+        #scaled_obs = scale_gym_data(self.observation_space, obs)
+        #print('reset ->', scaled_obs)
+        #print(self.observation_space.shape)
+        #return scaled_obs
+        return obs
 
     def reset_simulation(self):
         self.terminated = 0
@@ -173,12 +179,12 @@ class PandaReachGymEnv(gym.Env):
         self.apply_action(action)
 
         observation, _ = self.get_extended_observation()
-        scaled_obs = scale_gym_data(self.observation_space, observation)
+        #scaled_obs = scale_gym_data(self.observation_space, observation)
 
         done = self._termination()
         reward = self._compute_reward()
 
-        return scaled_obs, np.array(reward), np.array(done), {}
+        return observation, reward, done, {}
 
     def render(self, mode="rgb_array"):
         if mode != "rgb_array":
@@ -236,10 +242,9 @@ class PandaReachGymEnv(gym.Env):
             return np.float32(1.0)
 
         if self.terminated or self._env_step_counter > self._max_steps:
-            return np.float32(1.0)
+            return True
 
-        return np.float32(0.0)
-
+        return False
 
     def _compute_reward(self):
         robot_observation, _ = self._robot.get_observation()
