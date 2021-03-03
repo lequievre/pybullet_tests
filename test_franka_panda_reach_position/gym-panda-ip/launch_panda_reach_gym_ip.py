@@ -78,6 +78,7 @@ if __name__ == '__main__':
     
     observation_scaled = env.reset()
     print('observation scaled after reset = ', observation_scaled)
+    print('len observation = ', len(observation_scaled))
 
     # print robot observation
     observation, _ = env._robot.get_observation()
@@ -100,14 +101,44 @@ if __name__ == '__main__':
 
     print("Enter to quit into the graphic window !")
     while True:
+
+        # let the simulation to redraw	   
+        p.stepSimulation(physicsClientId=physics_client_id )
+        time.sleep(timestep)
+
+        keys = None
+
+        p.configureDebugVisualizer(p.COV_ENABLE_SINGLE_STEP_RENDERING, physicsClientId=physics_client_id )
     
         # look if there is keyboard event and put it in a dictionary named keys
         keys = p.getKeyboardEvents()
+
+        for k, v in keys.items():
+            if (k == 105 and (v & p.KEY_WAS_TRIGGERED)):
+                 # print robot observation
+                 observation, _ = env.get_extended_observation()
+                 list_items = list(env._robot._joint_name_to_index.items())
+                 for i in range(len(list_items)):
+                      print(list_items[i],"->",observation[6+i])
+            elif (k == 97 and (v & p.KEY_WAS_TRIGGERED)): # (with letter 'a' = 97)
+                 env.apply_action([0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+            elif (k == 98 and (v & p.KEY_WAS_TRIGGERED)): # (with letter 'b' = 98)
+                 env.apply_action([0.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0])
+            elif (k == 99 and (v & p.KEY_WAS_TRIGGERED)): # (with letter 'c' = 99)
+                 env.apply_action([0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.0])
+            elif (k == 100 and (v & p.KEY_WAS_TRIGGERED)): # (with letter 'd' = 100)
+                 env.apply_action([0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0])
+            elif (k == 101 and (v & p.KEY_WAS_TRIGGERED)): # (with letter 'e' = 101)
+                 env.apply_action([0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0])
+            elif (k == 102 and (v & p.KEY_WAS_TRIGGERED)): # (with letter 'f' = 102)
+                 env.apply_action([0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0])
+            elif (k == 104 and (v & p.KEY_WAS_TRIGGERED)): # (with letter 'g' = 103)
+                 env.apply_action([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2])
     
         # 'Enter' event = 65309, if so .. break the loop
         if 65309 in keys:
             break
-
+        """
         if 97 in keys: # (with letter 'a' = 97)
             env.apply_action([0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         elif 98 in keys: # (with letter 'b' = 98)
@@ -122,7 +153,7 @@ if __name__ == '__main__':
             env.apply_action([0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0])
         elif 103 in keys: # (with letter 'g' = 103)
             env.apply_action([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2])
-        elif keys.get(105): # (with letter 'i' = 105)
+        elif (105 in keys) and (p.KEY_WAS_TRIGGERED) : # (with letter 'i' = 105)
             # print robot observation
             observation, _ = env.get_extended_observation()
             list_items = list(env._robot._joint_name_to_index.items())
@@ -133,9 +164,8 @@ if __name__ == '__main__':
             for _ in range(100):
                p.stepSimulation(physicsClientId=physics_client_id )
             
-        # let the simulation to redraw	   
-        p.stepSimulation(physicsClientId=physics_client_id )
-        #time.sleep(timestep)
+        """ 
+        
             
 
     p.disconnect()
