@@ -11,7 +11,7 @@ mkdir test_rl<br/>
 cd test_rl<br/>
 
 1- Create a virtual env named for example 've_panda' into 'test_rl' :<br/>
-virtualenv ve_panda<br/>
+virtualenv -p /usr/bin/python3.9 ve_panda<br/>
 source ve_panda/bin/activate<br/>
 
 2- Clone the git project into 'test_rl' :<br/>
