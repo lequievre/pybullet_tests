@@ -1,2 +1,4 @@
-gym
+gym==0.17
 pybullet
+stable-baselines3
+tensorboard
