@@ -297,8 +297,18 @@ n_updates -> self._n_updates
 virtualenv -p /usr/bin/python3.9 ve_stable_baselines3
 
 source ve_stable_baselines3/bin/activate
-pip install gym
+
+python -m pip install --upgrade pip
+
+pip install gym==0.17
 pip install pybullet
-pip install stable-baslines3
+pip install stable-baselines3
 pip install tensorboard
+
+
+sometimes remove pip cache :
+cd ~
+cd .cache
+cd pip
+rm -r *
 
