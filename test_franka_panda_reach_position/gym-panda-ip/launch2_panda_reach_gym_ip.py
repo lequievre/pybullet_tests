@@ -10,7 +10,6 @@ laurent.lequievre@uca.fr
 
 import gym
 import gym_panda_ip
-import pybullet as p
 
 def main():
     env = gym.make('panda-ip-reach-v0')
@@ -20,10 +19,11 @@ def main():
         observation = env.reset()
         for t in range(100):
             env.render()
-            print(observation)
             action = env.action_space.sample()
             print("action = {0}".format(action))
             observation, reward, done, info = env.step(action)
+            print("observation = {0}".format(observation))
+            print("reward = {0}".format(reward))
             if done:
                 print("Episode finished after {} timesteps".format(t+1))
                 break
