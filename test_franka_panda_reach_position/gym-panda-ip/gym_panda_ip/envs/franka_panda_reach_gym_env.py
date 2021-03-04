@@ -29,6 +29,8 @@ from gym_panda_ip.envs.utils import scale_gym_data, goal_distance
 import time
 
 class PandaReachGymEnv(gym.Env):
+    metadata = {'render.modes': ['human', 'rgb_array'],
+    'video.frames_per_second': 50 }
 
     def __init__(self,
                  action_repeat=1,
