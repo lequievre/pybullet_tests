@@ -3,6 +3,9 @@ Research Engineer, CNRS (France)<br/>
 Institut Pascal UMR6602<br/>
 laurent.lequievre@uca.fr<br/>
 
+* On Ubuntu 16.04, it is better to comment out the ros setup line in the .bashrc file<br/>
+#source /opt/ros/kinetic/setup.bash
+
 * How to test gym panda package into a virtual env
 
 0- Create a 'test_rl' directory at home directory :<br/>
@@ -25,7 +28,7 @@ pip install -r requirements.txt<br/>
 4- Install gym-panda-ip package on your local system :<br/>
 pip install -e .<br/>
 
--> It will create a 'link file' named 'gym-panda-ip.egg-link' into the directory '~/test_rl/ve_panda/lib/python3.5/site-packages'<br/>
+-> It will create a 'link file' named 'gym-panda-ip.egg-link' into the directory '~/test_rl/ve_panda/lib/python3.9/site-packages'<br/>
 
 -> That file contains the directory where to find the package : '~/test_rl/pybullet/test_franka_panda/gym-panda-ip'<br/>
 
