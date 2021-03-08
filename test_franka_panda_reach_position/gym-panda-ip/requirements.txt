@@ -1,4 +1,4 @@
-gym==0.17
+gym
 pybullet
 stable-baselines3
 tensorboard

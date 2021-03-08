@@ -43,9 +43,9 @@ class PandaReachGymEnv(gym.Env):
         self._renders = renders
 
         if self._renders:
-            """self._physics_client_id = p.connect(p.SHARED_MEMORY)
-            if self._physics_client_id < 0:
-                self._physics_client_id = p.connect(p.GUI)"""
+            #self._physics_client_id = p.connect(p.SHARED_MEMORY)
+            #if self._physics_client_id < 0:
+            #    self._physics_client_id = p.connect(p.GUI)
             self._physics_client_id = p.connect(p.GUI)
             p.resetDebugVisualizerCamera(2.5, 90, -60, [0.52, -0.2, -0.33], physicsClientId=self._physics_client_id)
         else:

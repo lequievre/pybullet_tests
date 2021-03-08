@@ -54,7 +54,7 @@ def main():
    print("end model evaluation !")
    """
    print("start model learning !")
-   model.learn(total_timesteps=10000, log_interval=10)
+   model.learn(total_timesteps=200000, log_interval=10)
    print("end model learning !")
 
    print("-> model saved !!")
