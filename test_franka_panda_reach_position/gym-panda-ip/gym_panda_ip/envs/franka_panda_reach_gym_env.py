@@ -74,6 +74,7 @@ class PandaReachGymEnv(gym.Env):
         self.terminated = 0
 
         self._target_dist_min = 0.03
+        self._target_threshold = 0.001
 
         self._max_steps = max_steps
 
@@ -251,12 +252,32 @@ class PandaReachGymEnv(gym.Env):
     def _compute_reward(self):
         robot_observation, _ = self._robot.get_observation()
         world_observation, _ = self._world.get_observation()
+        
+        #self._target_dist_min = 0.03
+        #self._target_threshold = 0.001
 
+        # _e => effector
+        x_e = robot_observation[0]
+        y_e = robot_observation[1]
+        z_e = robot_observation[2]
+        
+        # _o => object
+        x_o = world_observation[0]
+        y_o = world_observation[1]
+        z_o = world_observation[2]
+      
         d = goal_distance(np.array(robot_observation[:3]), np.array(world_observation[:3]))
 
-        reward = -d
-        if d <= self._target_dist_min:
-            reward = np.float32(1000.0) + (100 - d*80)
+        reward = 0
+
+        if (abs(x_e-x_o) <= self._target_threshold) 
+        and (abs(y_e-y_o) <= self._target_threshold) 
+        and (abs(z_e-z_o-self._target_dist_min) <= self._target_threshold):
+			reward = 1
+		elif ((z_o + self._target_dist_min - self._target_threshold) > z_e) :
+			reward = -10
+	    else:
+			reward = -d
 
         return reward
 
