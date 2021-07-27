@@ -55,6 +55,8 @@ import numpy as np
 import math as m
 from collections import OrderedDict
 
+from statistics import mean
+
 class PandaEnv:
 
     # dictionary than define initial joint position of the robot
@@ -79,8 +81,9 @@ class PandaEnv:
         self._physics_client_id = physics_client_id
         self._base_position = base_position # robot base position into the world when loaded URDF
 
-        # Nb joint to move = 7 (panda_joint(1..7)
-        self.joint_action_space = 7
+        # Nb joint to move = 6 (panda_joint1.. panda_joint6)
+        # We removed the panda_joint7 in order to prevent the rotation of the gripper
+        self.joint_action_space = 6
 
         # workspace limit [[xmin,xmax], [ymin,ymax], [zmin,zmax]]
         self._workspace_lim = [[0.3, 0.65], [-0.3, 0.3], [0.65, 1.5]]
@@ -89,8 +92,13 @@ class PandaEnv:
         # Euler limit = [[rot_xmin,rot_xmax], [rot_ymin,rot_ymax], [rot_zmin,rot_zmax]]
         self._end_eff_euler_lim = [[-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]]  # euler limit
 
-        # effector index : i=7, name=panda_joint8, type=JOINT FIXED, lower=0.0, upper=-1.0, effort=0.0, velocity=0.0
-        self.end_eff_idx = 7
+        # end effector index : <link name="panda_grasptarget">
+        # index of link "panda_grasptarget" = 11
+		# rmq : index of child link = index of joint
+		# Example :
+		# Child link of joint "panda_grasptarget_hand" = "panda_grasptarget"
+		# index of joint "panda_grasptarget_hand" = 11, so index of link "panda_grasptarget" = 11
+        self.end_eff_idx = 11
 
         # Pybullet id of robot franka panda loaded
         self.robot_id = None
@@ -100,6 +108,9 @@ class PandaEnv:
 
         # load robot from URDF
         self.reset()
+        
+        # draw eff position with an "*"
+        self.debug_draw_eff_position()
 
         #print("End PandaEnv  init !")
 
@@ -242,8 +253,43 @@ class PandaEnv:
                                     positionGain=0.5, velocityGain=1.0,
                                     physicsClientId=self._physics_client_id)
 
+
+    def debug_draw_eff_position(self):
+		
+		# index of panda_grasptarget link = 11
+		# rmq : index of child link = index of joint
+		# Example :
+		# Child link of joint "panda_grasptarget_hand" = "panda_grasptarget"
+		# index of joint "panda_grasptarget_hand" = 11, so index of link "panda_grasptarget" = 11
+		
+        panda_grasptarget_link = 11
+        
+        # Get state of the panda_grasptarget_hand link
+        state_grasp = p.getLinkState(self.robot_id, panda_grasptarget_link, computeLinkVelocity=0,
+                               computeForwardKinematics=1, physicsClientId=self._physics_client_id)
+
+                 
+        #p.addUserDebugLine(state_grasp[0], [state_grasp[0][0]+1.0, state_grasp[0][1], state_grasp[0][2]], lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+       
+        # draw 3d landmarks of the base of robot (index = -1) and the end effector (index = self.end_eff_idx)
+        size_line = 0.2
+        p.addUserDebugLine([0, 0, 0], [size_line, 0, 0], [1, 0, 0], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
+                           parentLinkIndex=-1, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine([0, 0, 0], [0, size_line, 0], [0, 1, 0], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
+                           parentLinkIndex=-1, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine([0, 0, 0], [0, 0, size_line], [0, 0, 1], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
+                           parentLinkIndex=-1, physicsClientId=self._physics_client_id)
+
+        pos_eff = state_grasp[0]
+        
+        p.addUserDebugLine(pos_eff, [pos_eff[0]+size_line,pos_eff[1],pos_eff[2]], lineColorRGB=[1, 0, 0], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(pos_eff, [pos_eff[0],pos_eff[1]+size_line,pos_eff[2]], lineColorRGB=[0, 1, 0], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+        p.addUserDebugLine(pos_eff, [pos_eff[0],pos_eff[1],pos_eff[2]+size_line], lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
+
     def debug_gui(self):
 
+        # workspace limit [[xmin,xmax], [ymin,ymax], [zmin,zmax]]
+        # self._workspace_lim = [[0.3, 0.65], [-0.3, 0.3], [0.65, 1.5]]
         ws = self._workspace_lim
         p1 = [ws[0][0], ws[1][0], ws[2][0]]  # xmin,ymin,zmin
         p2 = [ws[0][1], ws[1][0], ws[2][0]]  # xmax,ymin,zmin
@@ -272,18 +318,4 @@ class PandaEnv:
         p.addUserDebugLine(p3, p3_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
         p.addUserDebugLine(p4, p4_zmax, lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
 
-        # draw 3d landmarks of the base of robot (index = -1) and the end effector (index = self.end_eff_idx)
-        size_line = 0.2
-        p.addUserDebugLine([0, 0, 0], [size_line, 0, 0], [1, 0, 0], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
-                           parentLinkIndex=-1, physicsClientId=self._physics_client_id)
-        p.addUserDebugLine([0, 0, 0], [0, size_line, 0], [0, 1, 0], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
-                           parentLinkIndex=-1, physicsClientId=self._physics_client_id)
-        p.addUserDebugLine([0, 0, 0], [0, 0, size_line], [0, 0, 1], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
-                           parentLinkIndex=-1, physicsClientId=self._physics_client_id)
-
-        p.addUserDebugLine([0, 0, 0], [size_line, 0, 0], [1, 0, 0], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
-                           parentLinkIndex=self.end_eff_idx, physicsClientId=self._physics_client_id)
-        p.addUserDebugLine([0, 0, 0], [0, size_line, 0], [0, 1, 0], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
-                           parentLinkIndex=self.end_eff_idx, physicsClientId=self._physics_client_id)
-        p.addUserDebugLine([0, 0, 0], [0, 0, size_line], [0, 0, 1], lineWidth=2.0, lifeTime=0, parentObjectUniqueId=self.robot_id,
-                           parentLinkIndex=self.end_eff_idx, physicsClientId=self._physics_client_id)
+        

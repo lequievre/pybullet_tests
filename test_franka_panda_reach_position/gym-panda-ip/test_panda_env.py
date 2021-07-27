@@ -36,7 +36,7 @@ robot.set_workspace(workspace_robot)
 print("robot workspace limit (after table) = ", robot.get_workspace())
 
 robot.debug_gui()
-world.debug_gui()
+#world.debug_gui()
 
 robot_observation, robot_observation_lim = robot.get_observation()
 print("robot observation = ", robot_observation)
