@@ -270,14 +270,14 @@ class PandaReachGymEnv(gym.Env):
 
         reward = 0
 
-        if (abs(x_e-x_o) <= self._target_threshold) 
+        if ((abs(x_e-x_o) <= self._target_threshold) 
         and (abs(y_e-y_o) <= self._target_threshold) 
-        and (abs(z_e-z_o-self._target_dist_min) <= self._target_threshold):
-			reward = 1
-		elif ((z_o + self._target_dist_min - self._target_threshold) > z_e) :
-			reward = -10
-	    else:
-			reward = -d
+        and (abs(z_e-z_o-self._target_dist_min) <= self._target_threshold)):
+            reward = 1
+        elif ((z_o + self._target_dist_min - self._target_threshold) > z_e):
+            reward = -10
+        else:
+            reward = -d
 
         return reward
 
