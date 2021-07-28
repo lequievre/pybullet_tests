@@ -1,0 +1,164 @@
+stable_baselines3/common/policies.py
+
+Class BaseModel heritate from nn.Module and ABC
+
+nn.Module = CLASS torch.nn.Module : Base class for all neural network modules.
+https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module
+
+ABC = class ABC(metaclass=ABCMeta) : /usr/lib/python3.8
+
+
+prepocessing observation : stable_baselines3/common/preprocessing.py
+line 85 : 
+def preprocess_obs(
+    obs: th.Tensor,
+    observation_space: spaces.Space,
+    normalize_images: bool = True,
+) -> Union[th.Tensor, Dict[str, th.Tensor]]:
+
+
+Open AI Gym Spaces
+https://github.com/lequievre/pybullet/blob/main/tests_pytorch/test_cartpole.ipynb
+
+
+
+
+Gym : spaces.Box
+----------------
+
+https://github.com/openai/gym/blob/master/gym/spaces/box.py
+
+# create an array in variable low and another one for high with a shape of the variable shape.
+# the value of each elemement of the array high and low will be equal to the scalar value given as a parameter low and high. 
+b = spaces.Box(low=-1.0, high=2.0, shape=(3, 4), dtype=np.float32)
+b.low -> 
+array([[-1., -1., -1., -1.],
+       [-1., -1., -1., -1.],
+       [-1., -1., -1., -1.]], dtype=float32)
+
+
+b.high ->
+array([[2., 2., 2., 2.],
+       [2., 2., 2., 2.],
+       [2., 2., 2., 2.]], dtype=float32)
+       
+b.shape ->
+(3, 4)
+
+
+# take the shape of the np.array of high and low
+b2 = spaces.Box(low=np.array([-1.0, -2.0]), high=np.array([2.0, 4.0]), dtype=np.float32)
+
+b2.low ->
+array([-1., -2.], dtype=float32)
+
+b2.high ->
+array([2., 4.], dtype=float32)
+
+b2.shape ->
+(2,)
+
+b2 ->
+Box(-2.0, 4.0, (2,), float32)
+# -2.0 is the lowest value of b2.low
+# 4.0 is the highest value of b2.high
+
+
+A Box is used for setting the limits min and max of the observation space.
+Example :
+
+https://github.com/lequievre/pybullet/blob/main/tests_pytorch/test_cartpole.ipynb
+
+env = gym.make('CartPole-v0') 
+b = env.observation_space
+b.high
+array([4.8000002e+00, 3.4028235e+38, 4.1887903e-01, 3.4028235e+38],
+      dtype=float32)
+b.low
+array([-4.8000002e+00, -3.4028235e+38, -4.1887903e-01, -3.4028235e+38],
+      dtype=float32)
+      
+Type: Box(4)
+Num     Observation               Min                     Max
+0       Cart Position             -4.8                    4.8
+1       Cart Velocity             -Inf                    Inf
+2       Pole Angle                -0.418 rad (-24 deg)    0.418 rad (24 deg)
+3       Pole Angular Velocity     -Inf                    Inf
+   
+
+observation_space of franka panda reach position
+-------------------------------------------------
+/home/laurent/git_projects/lequievre/pybullet/test_franka_panda_reach_position/gym-panda-ip/gym_panda_ip/envs
+
+
+end effector link = eef
+
+pos = cartesian position of center mass of eef
+
+ori = orientation of the center of mass of eef convert to euler
+
+robot observation = [x_pos , y_pos, z_pos, ori_roll, ori_pitch, ori_yaw, 
+                     panda_joint1, panda_joint2, panda_joint3,
+                     panda_joint4, panda_joint5, panda_joint6,
+                     panda_joint7, panda_finger_joint1, panda_finger_joint2]
+
+Into the class PandaEnv (file franka_panda_env.py, line 86), we defined :
+# workspace limit [[xmin,xmax], [ymin,ymax], [zmin,zmax]]
+#self._workspace_lim = [[0.3, 0.65], [-0.3, 0.3], [0.65, 1.5]]   
+ 
+# Cartesian rotation limit of end effector
+# Euler limit = [[rot_xmin,rot_xmax], [rot_ymin,rot_ymax], [rot_zmin,rot_zmax]]
+# self._end_eff_euler_lim = [[-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]]  # euler limit           
+			 
+robot_observation_lim = [[0.3, 0.65], [-0.3, 0.3], [0.65, 1.5], [-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi],
+[lower_limit_panda_joint1, upper_limit_panda_joint1],
+[lower_limit_panda_joint2, upper_limit_panda_joint2],
+[lower_limit_panda_joint3, upper_limit_panda_joint3],
+[lower_limit_panda_joint4, upper_limit_panda_joint4],
+[lower_limit_panda_joint5, upper_limit_panda_joint5],
+[lower_limit_panda_joint6, upper_limit_panda_joint6],
+[lower_limit_panda_joint7, upper_limit_panda_joint7],
+[lower_limit_panda_finger_joint1, upper_limit_panda_finger_joint1],
+[lower_limit_panda_finger_joint2, upper_limit_panda_finger_joint2]
+]
+
+# see world_env.py
+
+pos = cartesian position of center mass of object (duck for example)
+ori = orientation of the center of mass of object convert to euler
+
+# robot workspace limit [[xmin,xmax], [ymin,ymax], [zmin,zmax]]
+# self._workspace_lim = [[0.3, 0.65], [-0.3, 0.3], [0.65, 1.5]]
+# world env orientation lim = [-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]
+
+world_observation = [x_pos , y_pos, z_pos, roll, ori_pitch, ori_yaw]
+world_observation_lim = [[0.3, 0.65], [-0.3, 0.3], [0.65, 1.5], [-m.pi, m.pi], [-m.pi, m.pi], [-m.pi, m.pi]]
+
+
+# Observation of open ai gym 
+# get_extended_observation of franka_panda_reach_gym_env.py
+
+observation = [ robot observation, world_observation ]
+observation_lim = [ robot observation_lim, world_observation_lim ]
+
+# Observation space == Observation limit
+# observation_low contains all the min of observation_lim ( 21 values )
+# observation_high contains all the max of observation_lim ( 21 values )
+
+observation_space = spaces.Box(np.array(observation_low), np.array(observation_high),dtype=np.float32)
+
+# Action space
+# robot -> self.joint_action_space = 7
+# Be careful the value of an action is between -1 to 1.
+
+action_space = spaces.Box([-1,-1,-1,-1,-1,-1,-1], [1,1,1,1,1,1,1], dtype='float32')
+
+
+# panda.urdf can be found here : /home/laurent/Projects/rl_melodie/ve_panda/lib/python3.8/site-packages/pybullet_data/franka_panda/panda.urdf'
+
+# Architecture of gym.Env :
+https://github.com/openai/gym/blob/master/gym/core.py
+
+https://medium.com/@apoddar573/making-your-own-custom-environment-in-gym-c3b65ff8cdaa
+
+
