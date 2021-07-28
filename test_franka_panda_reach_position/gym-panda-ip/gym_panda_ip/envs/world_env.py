@@ -73,6 +73,10 @@ class WorldEnv:
                               basePosition=[0.85, 0.0, 0.0], useFixedBase=True, physicsClientId=self._physics_client_id)
 
         table_info = p.getCollisionShapeData(self.table_id, -1, physicsClientId=self._physics_client_id)[0]
+        # p.getCollisionShapeData return a list of collision shape, in our case there is only one shape so [0]
+        # table_info[5] (x,y,z) -> position of the collision shape (box) into table frame
+        # table_info[3] (x,y,z) -> size of collision shape (box)
+        # voir doc/table_collision.pdf
         self._h_table = table_info[5][2] + table_info[3][2]/2
 
         # set ws limit on z according to table height

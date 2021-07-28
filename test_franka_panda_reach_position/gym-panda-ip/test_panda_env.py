@@ -22,7 +22,7 @@ print("ranges =", robot.list_ranges)
 print("rest pos =", robot.list_rest_pos)
 
 
-world = WorldEnv(physics_client_id)
+world = WorldEnv(physics_client_id, workspace_lim=robot.get_workspace())
 print("world workspace limit = ", world.get_workspace())
 
 workspace_robot = robot.get_workspace()
@@ -36,7 +36,7 @@ robot.set_workspace(workspace_robot)
 print("robot workspace limit (after table) = ", robot.get_workspace())
 
 robot.debug_gui()
-#world.debug_gui()
+world.debug_gui()
 
 robot_observation, robot_observation_lim = robot.get_observation()
 print("robot observation = ", robot_observation)
