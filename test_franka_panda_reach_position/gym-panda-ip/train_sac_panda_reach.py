@@ -32,7 +32,7 @@ def main():
    """
 
    # Example with a simple Dummy vec env
-   env = gym.envs.make('panda-ip-reach-v0', renders= True)
+   env = gym.envs.make('panda-ip-reach-v0', renders= False)
    env = DummyVecEnv([lambda: env])
 
 
