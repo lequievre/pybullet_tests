@@ -109,8 +109,7 @@ class PandaEnv:
         # load robot from URDF
         self.reset()
         
-        # draw eff position with an "*"
-        self.debug_draw_eff_position()
+        
 
         #print("End PandaEnv  init !")
 
@@ -287,6 +286,9 @@ class PandaEnv:
         p.addUserDebugLine(pos_eff, [pos_eff[0],pos_eff[1],pos_eff[2]+size_line], lineColorRGB=[0, 0, 1], lineWidth=2.0, lifeTime=0, physicsClientId=self._physics_client_id)
 
     def debug_gui(self):
+		
+		# draw eff position with an "*"
+        self.debug_draw_eff_position()
 
         # workspace limit [[xmin,xmax], [ymin,ymax], [zmin,zmax]]
         # self._workspace_lim = [[0.3, 0.65], [-0.3, 0.3], [0.65, 1.5]]

@@ -32,7 +32,7 @@ def main():
    """
 
    # Example with a simple Dummy vec env
-   env = gym.envs.make('panda-ip-reach-v0', renders= False)
+   env = gym.envs.make('panda-ip-reach-v0', renders= True)
    env = DummyVecEnv([lambda: env])
 
 
@@ -46,7 +46,7 @@ def main():
    print("end model evaluation !")
    """
    print("start model learning !")
-   model.learn(total_timesteps=20000, log_interval=10)
+   model.learn(total_timesteps=200000, log_interval=10)
    print("end model learning !")
 
    print("-> model saved !!")

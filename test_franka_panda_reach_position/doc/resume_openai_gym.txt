@@ -162,3 +162,65 @@ https://github.com/openai/gym/blob/master/gym/core.py
 https://medium.com/@apoddar573/making-your-own-custom-environment-in-gym-c3b65ff8cdaa
 
 
+==========
+# Resume #
+==========
+
+cd /home/laurent/Projects/rl_melodie
+source ve_panda/bin/activate
+
+cd /home/laurent/git_projects/lequievre/pybullet/test_franka_panda_reach_position/gym-panda-ip
+( train gym env)
+python ./train_sac_panda_reach.py
+( test a trained gym env)
+python ./test_sac_panda_reach.py
+( test gym env without learning)
+python ./test_panda_env.py 
+
+
+(if we want to change an object to grasp by default)
+cd /home/laurent/git_projects/lequievre/pybullet/test_franka_panda_reach_position/gym-panda-ip/gym_panda_ip
+modify __int__.py
+'obj_name' : 'cube_small'
+
+
+(modify reward)
+cd /home/laurent/git_projects/lequievre/pybullet/test_franka_panda_reach_position/gym-panda-ip/gym_panda_ip/envs
+modify file franka_panda_reach_gym_env.py
+Class PandaReachGymEnv
+def _compute_reward(self)
+
+(modify step time)
+cd /home/laurent/git_projects/lequievre/pybullet/test_franka_panda_reach_position/gym-panda-ip/gym_panda_ip/envs
+modify file franka_panda_reach_gym_env.py
+Class PandaReachGymEnv
+def __init__
+self._timeStep = 1. / 240.
+
+(modify the ending of an episode)
+modify file franka_panda_reach_gym_env.py
+The function 'step' return a boolean done (episode is done or not)
+This boolean done is calculated into the function '_termination'
+
+
+(modify observations, debug gui, action space, end effector link index, ws, ws_limit)
+cd /home/laurent/git_projects/lequievre/pybullet/test_franka_panda_reach_position/gym-panda-ip/gym_panda_ip/envs
+franka_panda_env.py
+__init__
+self.joint_action_space = 6
+self.end_eff_idx = 11
+
+def get_observation
+def debug_gui
+
+world_env.py
+
+def debug_gui
+def get_observation
+
+
+
+
+
+
+

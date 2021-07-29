@@ -35,7 +35,7 @@ class WorldEnv:
 
     def __init__(self,
                  physicsClientId,
-                 obj_name='duck_vhacd',
+                 obj_name='cube_small',
                  obj_pose_rnd_std=0.05,
                  workspace_lim=None):
 
@@ -92,11 +92,17 @@ class WorldEnv:
         # Load object. Randomize its start position if requested
         self._obj_name = obj_name
         self._obj_init_pose = self._sample_pose()
+        """
         self.obj_id = p.loadURDF(obj_name + ".urdf",
                                  basePosition=self._obj_init_pose[:3], baseOrientation=self._obj_init_pose[3:7],
                                  flags=p.URDF_USE_MATERIAL_COLORS_FROM_MTL,
                                  physicsClientId=self._physics_client_id)
-
+        """
+        self.obj_id = p.loadURDF(obj_name + ".urdf",
+                                 basePosition=self._obj_init_pose[:3],
+                                 flags=p.URDF_USE_MATERIAL_COLORS_FROM_MTL,
+                                 physicsClientId=self._physics_client_id)
+        
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]

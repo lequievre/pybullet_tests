@@ -34,7 +34,7 @@ class PandaReachGymEnv(gym.Env):
 
     def __init__(self,
                  action_repeat=1,
-                 obj_name='duck_vhacd',
+                 obj_name='cube_small',
                  renders=False,
                  max_steps=1000,
                  obj_pose_rnd_std=0):
@@ -73,7 +73,7 @@ class PandaReachGymEnv(gym.Env):
 
         self.terminated = 0
 
-        self._target_dist_min = 0.03
+        self._target_dist_min = 0.06
         self._target_threshold = 0.001
 
         self._max_steps = max_steps
@@ -83,6 +83,8 @@ class PandaReachGymEnv(gym.Env):
         self._action_repeat = 1
 
         self._timeStep = 1. / 240.
+        
+        self._is_done = False
 
         self.seed()
 
@@ -144,6 +146,7 @@ class PandaReachGymEnv(gym.Env):
     def reset_simulation(self):
         self.terminated = 0
         self._env_step_counter = 0
+        self._is_done = False
 
         # --- reset simulation --- #
         p.resetSimulation(physicsClientId=self._physics_client_id)
@@ -184,8 +187,9 @@ class PandaReachGymEnv(gym.Env):
         observation, _ = self.get_extended_observation()
         #scaled_obs = scale_gym_data(self.observation_space, observation)
 
-        done = self._termination()
+        
         reward = self._compute_reward()
+        done = self._termination()
 
         return observation, reward, done, {}
 
@@ -229,25 +233,16 @@ class PandaReachGymEnv(gym.Env):
 
     def close(self):
         p.disconnect()
-
-    
+   
     def _termination(self):
-        robot_observation, _ = self._robot.get_observation()
-        world_observation, _ = self._world.get_observation()
-        d = goal_distance(np.array(robot_observation[:3]), np.array(world_observation[:3]))
-
-        if d <= self._target_dist_min:
-            self.terminated = 1
-            print('------------->>> success!')
-            print('final reward')
-            print(self._compute_reward())
-
-            return np.float32(1.0)
-
-        if self.terminated or self._env_step_counter > self._max_steps:
+        if self._is_done:
             return True
-
+			
+        if self._env_step_counter > self._max_steps:
+            return True
+			
         return False
+        	
 
     def _compute_reward(self):
         robot_observation, _ = self._robot.get_observation()
@@ -274,6 +269,7 @@ class PandaReachGymEnv(gym.Env):
         and (abs(y_e-y_o) <= self._target_threshold) 
         and (abs(z_e-z_o-self._target_dist_min) <= self._target_threshold)):
             reward = 1
+            self._is_done = True
         elif ((z_o + self._target_dist_min - self._target_threshold) > z_e):
             reward = -10
         else:

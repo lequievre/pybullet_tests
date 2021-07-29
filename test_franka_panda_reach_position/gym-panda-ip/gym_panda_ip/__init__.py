@@ -10,7 +10,7 @@ from gym.envs.registration import register
 register(
     id='panda-ip-reach-v0',
     entry_point='gym_panda_ip.envs:PandaReachGymEnv', kwargs={'action_repeat' : 1,
-                 'obj_name' : 'duck_vhacd',
+                 'obj_name' : 'cube_small',
                  'renders' : True,
                  'max_steps' : 1000,
                  'obj_pose_rnd_std' : 0}
